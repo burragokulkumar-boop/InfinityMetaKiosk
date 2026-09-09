@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -98,7 +99,7 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        // Back is disabled while the kiosk screen is active.
+        // Back disabled for kiosk mode.
     }
 
     private int dp(float value) {
@@ -178,11 +179,7 @@ public class MainActivity extends Activity {
                 makeText(
                         "Kiosk",
                         20,
-                        Color.rgb(
-                                65,
-                                65,
-                                65
-                        )
+                        Color.rgb(65, 65, 65)
                 );
 
         title.setTypeface(
@@ -258,11 +255,7 @@ public class MainActivity extends Activity {
                 makeText(
                         "Version\n1.0.5",
                         16,
-                        Color.rgb(
-                                105,
-                                105,
-                                105
-                        )
+                        Color.rgb(105, 105, 105)
                 );
 
         version.setPadding(
@@ -284,11 +277,7 @@ public class MainActivity extends Activity {
                 makeText(
                         "Installed date\n260808",
                         16,
-                        Color.rgb(
-                                105,
-                                105,
-                                105
-                        )
+                        Color.rgb(105, 105, 105)
                 );
 
         container.addView(
@@ -303,11 +292,7 @@ public class MainActivity extends Activity {
                 makeText(
                         "Done",
                         17,
-                        Color.rgb(
-                                55,
-                                55,
-                                55
-                        )
+                        Color.rgb(55, 55, 55)
                 );
 
         done.setGravity(Gravity.CENTER);
@@ -321,7 +306,6 @@ public class MainActivity extends Activity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
                         if (
                                 kioskDialog != null
                                         && kioskDialog.isShowing()
@@ -341,9 +325,7 @@ public class MainActivity extends Activity {
         );
 
         kioskDialog.setContentView(container);
-
         kioskDialog.setCanceledOnTouchOutside(true);
-
         kioskDialog.show();
 
         Window window =
@@ -379,11 +361,7 @@ public class MainActivity extends Activity {
         View divider = new View(this);
 
         divider.setBackgroundColor(
-                Color.rgb(
-                        220,
-                        220,
-                        220
-                )
+                Color.rgb(220, 220, 220)
         );
 
         container.addView(
@@ -412,27 +390,17 @@ public class MainActivity extends Activity {
                 makeText(
                         text,
                         17,
-                        Color.rgb(
-                                90,
-                                90,
-                                90
-                        )
+                        Color.rgb(90, 90, 90)
                 );
 
         TextView right =
                 makeText(
                         "View",
                         17,
-                        Color.rgb(
-                                115,
-                                135,
-                                205
-                        )
+                        Color.rgb(115, 135, 205)
                 );
 
-        right.setGravity(
-                Gravity.CENTER
-        );
+        right.setGravity(Gravity.CENTER);
 
         row.addView(
                 left,
@@ -469,15 +437,7 @@ public class MainActivity extends Activity {
                 )
                 .setPositiveButton(
                         "Exit",
-                        new android.content.DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(
-                                    android.content.DialogInterface dialog,
-                                    int which
-                            ) {
-                                exitKiosk();
-                            }
-                        }
+                        (dialog, which) -> exitKiosk()
                 )
                 .show();
     }
@@ -486,12 +446,11 @@ public class MainActivity extends Activity {
 
         try {
 
-            Intent intent =
+            startActivity(
                     new Intent(
                             Settings.ACTION_SETTINGS
-                    );
-
-            startActivity(intent);
+                    )
+            );
 
         } catch (Exception e) {
 
@@ -503,33 +462,96 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * Launch the installed Infinity Meta application.
+     */
     private void openInfinityMeta() {
 
         try {
 
+            PackageManager pm =
+                    getPackageManager();
+
             Intent launchIntent =
-                    getPackageManager()
-                            .getLaunchIntentForPackage(
-                                    INFINITY_META_PACKAGE
-                            );
+                    pm.getLaunchIntentForPackage(
+                            INFINITY_META_PACKAGE
+                    );
 
-            if (launchIntent == null) {
+            if (launchIntent != null) {
 
-                Toast.makeText(
-                        this,
-                        "Infinity Meta app is not installed",
-                        Toast.LENGTH_LONG
-                ).show();
+                launchIntent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK
+                                | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                );
+
+                startActivity(launchIntent);
 
                 return;
             }
 
-            launchIntent.addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK
-                            | Intent.FLAG_ACTIVITY_CLEAR_TOP
+            /*
+             * Fallback:
+             * Find the launcher activity belonging to
+             * apps.infinitylearn.lms.
+             */
+            Intent launcherIntent =
+                    new Intent(
+                            Intent.ACTION_MAIN
+                    );
+
+            launcherIntent.addCategory(
+                    Intent.CATEGORY_LAUNCHER
             );
 
-            startActivity(launchIntent);
+            java.util.List<android.content.pm.ResolveInfo> apps =
+                    pm.queryIntentActivities(
+                            launcherIntent,
+                            0
+                    );
+
+            for (
+                    android.content.pm.ResolveInfo info
+                    : apps
+            ) {
+
+                if (
+                        info.activityInfo != null
+                                &&
+                        INFINITY_META_PACKAGE.equals(
+                                info.activityInfo.packageName
+                        )
+                ) {
+
+                    Intent explicitIntent =
+                            new Intent(
+                                    Intent.ACTION_MAIN
+                            );
+
+                    explicitIntent.addCategory(
+                            Intent.CATEGORY_LAUNCHER
+                    );
+
+                    explicitIntent.setClassName(
+                            info.activityInfo.packageName,
+                            info.activityInfo.name
+                    );
+
+                    explicitIntent.addFlags(
+                            Intent.FLAG_ACTIVITY_NEW_TASK
+                                    | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    );
+
+                    startActivity(explicitIntent);
+
+                    return;
+                }
+            }
+
+            Toast.makeText(
+                    this,
+                    "Infinity Meta app is not installed",
+                    Toast.LENGTH_LONG
+            ).show();
 
         } catch (Exception e) {
 
@@ -541,6 +563,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * Home screen with the exact supplied wallpaper.
+     */
     private class HomeView extends View {
 
         private Bitmap wallpaper;
@@ -605,7 +630,7 @@ public class MainActivity extends Activity {
                 float y = event.getY();
 
                 /*
-                 * Bottom-left information button.
+                 * Bottom-left i button.
                  */
                 if (
                         x < getWidth() * 0.13f
@@ -619,12 +644,19 @@ public class MainActivity extends Activity {
                 }
 
                 /*
-                 * Infinity Meta logo.
+                 * Infinity Meta icon on the wallpaper.
+                 *
+                 * This is positioned over the icon shown
+                 * in the supplied image.
                  */
                 if (
-                        x < getWidth() * 0.32f
+                        x > getWidth() * 0.03f
                                 &&
-                        y < getHeight() * 0.30f
+                        x < getWidth() * 0.24f
+                                &&
+                        y > getHeight() * 0.22f
+                                &&
+                        y < getHeight() * 0.39f
                 ) {
 
                     openInfinityMeta();
