@@ -1,0 +1,67 @@
+name: Build InfinityMetaKiosk APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Extract project
+        run: |
+          unzip -o InfinityMetaKiosk.zip -d extracted
+
+      - name: Create Flutter Android project
+        run: |
+          flutter create \
+            --platforms=android \
+            --project-name=infinity_meta_kiosk \
+            build_project
+
+      - name: Copy Flutter source
+        run: |
+          cp extracted/InfinityMetaKiosk/pubspec.yaml build_project/pubspec.yaml
+          cp extracted/InfinityMetaKiosk/analysis_options.yaml build_project/analysis_options.yaml
+          cp -r extracted/InfinityMetaKiosk/lib build_project/
+
+      - name: Copy native Android files
+        run: |
+          cp extracted/InfinityMetaKiosk/android/app/build.gradle \
+             build_project/android/app/build.gradle
+
+          cp extracted/InfinityMetaKiosk/android/app/src/main/AndroidManifest.xml \
+             build_project/android/app/src/main/AndroidManifest.xml
+
+          cp -r extracted/InfinityMetaKiosk/android/app/src/main/kotlin \
+             build_project/android/app/src/main/
+
+          mkdir -p build_project/android/app/src/main/res/xml
+          cp extracted/InfinityMetaKiosk/android/app/src/main/res/xml/device_admin_receiver.xml \
+             build_project/android/app/src/main/res/xml/
+
+          cp extracted/InfinityMetaKiosk/android/gradle.properties \
+             build_project/android/gradle.properties
+
+      - name: Get Flutter packages
+        working-directory: build_project
+        run: flutter pub get
+
+      - name: Build APK
+        working-directory: build_project
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: InfinityMetaKiosk-APK
+          path: build_project/build/app/outputs/flutter-apk/*.apk
