@@ -12,7 +12,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -28,60 +27,35 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     /*
-     * ============================================================
-     * Infinity Meta package name
-     * ============================================================
-     *
-     * This is the package name of the separate Infinity Meta app.
+     * Infinity Learn application package.
      */
     private static final String INFINITY_META_PACKAGE =
             "apps.infinitylearn.lms";
 
-    private static final int BLUE =
-            Color.rgb(45, 83, 180);
-
     private Dialog kioskDialog;
 
-
-    // ============================================================
-    // ACTIVITY
-    // ============================================================
-
     @Override
-    protected void onCreate(Bundle state) {
-        super.onCreate(state);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-        try {
-            getWindow().setStatusBarColor(
-                    Color.rgb(103, 184, 213)
-            );
+        getWindow().setStatusBarColor(
+                Color.rgb(103, 184, 213)
+        );
 
-            getWindow().setNavigationBarColor(
-                    Color.BLACK
-            );
+        getWindow().setNavigationBarColor(
+                Color.BLACK
+        );
 
-            getWindow().setSoftInputMode(
-                    WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
-            );
+        getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
+        );
 
-            hideSystemBars();
+        hideSystemBars();
 
-            setContentView(
-                    new HomeView(this)
-            );
+        setContentView(new HomeView(this));
 
-            enterKiosk();
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Infinity Meta Kiosk failed to start",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
+        enterKiosk();
     }
-
 
     @Override
     protected void onResume() {
@@ -91,178 +65,131 @@ public class MainActivity extends Activity {
         enterKiosk();
     }
 
-
-    @Override
-    protected void onWindowFocusChanged(
-            boolean hasFocus
-    ) {
-        super.onWindowFocusChanged(hasFocus);
-
-        if (hasFocus) {
-            hideSystemBars();
-        }
-    }
-
-
-    // ============================================================
-    // FULL SCREEN / SYSTEM BARS
-    // ============================================================
-
+    /*
+     * Hide status and navigation bars.
+     *
+     * Uses the older SYSTEM_UI_FLAG API for maximum
+     * compatibility with the current project.
+     */
     private void hideSystemBars() {
 
-        try {
-
-            View decorView =
-                    getWindow().getDecorView();
-
-            /*
-             * Use the older View flags instead of
-             * WindowInsetsController.
-             *
-             * This avoids the compilation problem that
-             * occurred in the previous build.
-             */
-
-            int flags =
-                    View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-
-            decorView.setSystemUiVisibility(flags);
-
-        } catch (Exception ignored) {
-        }
+        getWindow()
+                .getDecorView()
+                .setSystemUiVisibility(
+                        View.SYSTEM_UI_FLAG_FULLSCREEN
+                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                );
     }
 
-
-    // ============================================================
-    // KIOSK MODE
-    // ============================================================
-
+    /*
+     * Enter Android Lock Task mode.
+     */
     private void enterKiosk() {
 
-        try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-            if (Build.VERSION.SDK_INT >=
-                    Build.VERSION_CODES.LOLLIPOP) {
-
+            try {
                 startLockTask();
+            } catch (Exception ignored) {
             }
-
-        } catch (Exception ignored) {
-
-            /*
-             * Lock Task can fail if the device has not been
-             * provisioned as Device Owner / allowlisted.
-             *
-             * The application itself should still continue.
-             */
         }
     }
 
-
+    /*
+     * Exit Android Lock Task mode.
+     */
     private void exitKiosk() {
 
-        try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-            if (Build.VERSION.SDK_INT >=
-                    Build.VERSION_CODES.LOLLIPOP) {
-
+            try {
                 stopLockTask();
+            } catch (Exception ignored) {
             }
-
-        } catch (Exception ignored) {
         }
     }
 
-
-    // ============================================================
-    // BACK BUTTON
-    // ============================================================
-
+    /*
+     * Disable the Back button while this activity is running.
+     */
     @Override
     public void onBackPressed() {
-
-        /*
-         * Intentionally consume Back.
-         *
-         * This keeps the kiosk screen from being closed.
-         */
+        // Intentionally disabled for kiosk mode.
     }
 
-
-    // ============================================================
-    // HELPERS
-    // ============================================================
-
-    private int dp(float n) {
+    /*
+     * Convert dp to pixels.
+     */
+    private int dp(float value) {
 
         return (int) (
-                n *
-                        getResources()
-                                .getDisplayMetrics()
-                                .density
+                value
+                        * getResources()
+                        .getDisplayMetrics()
+                        .density
                         + 0.5f
         );
     }
 
-
+    /*
+     * Create a TextView.
+     */
     private TextView label(
             String text,
             float size,
             int color
     ) {
 
-        TextView t =
+        TextView textView =
                 new TextView(this);
 
-        t.setText(text);
-        t.setTextSize(size);
-        t.setTextColor(color);
-        t.setGravity(
+        textView.setText(text);
+        textView.setTextSize(size);
+        textView.setTextColor(color);
+        textView.setGravity(
                 Gravity.CENTER_VERTICAL
         );
 
-        return t;
+        return textView;
     }
 
-
+    /*
+     * Create a rounded background.
+     */
     private GradientDrawable rounded(
             int radius,
             int color
     ) {
 
-        GradientDrawable g =
+        GradientDrawable drawable =
                 new GradientDrawable();
 
-        g.setColor(color);
-        g.setCornerRadius(
+        drawable.setColor(color);
+        drawable.setCornerRadius(
                 dp(radius)
         );
 
-        return g;
+        return drawable;
     }
 
-
-    // ============================================================
-    // KIOSK MENU
-    // ============================================================
-
+    /*
+     * Show kiosk menu.
+     */
     private void showKioskMenu() {
 
-        if (kioskDialog != null
-                && kioskDialog.isShowing()) {
-
+        if (
+                kioskDialog != null
+                        && kioskDialog.isShowing()
+        ) {
             return;
         }
 
-
         kioskDialog =
                 new Dialog(this);
-
 
         LinearLayout box =
                 new LinearLayout(this);
@@ -285,11 +212,9 @@ public class MainActivity extends Activity {
                 )
         );
 
-
-        // --------------------------------------------------------
-        // TITLE
-        // --------------------------------------------------------
-
+        /*
+         * Title.
+         */
         TextView title =
                 label(
                         "Kiosk",
@@ -314,36 +239,29 @@ public class MainActivity extends Activity {
                 )
         );
 
-
         divider(box);
 
-
-        // --------------------------------------------------------
-        // SETTINGS
-        // --------------------------------------------------------
-
+        /*
+         * Settings.
+         */
         menuRow(
                 box,
                 "Settings",
                 v -> openSettings()
         );
 
-
-        // --------------------------------------------------------
-        // EXIT KIOSK
-        // --------------------------------------------------------
-
+        /*
+         * Exit kiosk.
+         */
         menuRow(
                 box,
                 "Exit Kiosk",
                 v -> confirmExit()
         );
 
-
-        // --------------------------------------------------------
-        // SUPPORT
-        // --------------------------------------------------------
-
+        /*
+         * Support.
+         */
         menuRow(
                 box,
                 "Support",
@@ -354,11 +272,9 @@ public class MainActivity extends Activity {
                 ).show()
         );
 
-
-        // --------------------------------------------------------
-        // OPEN SOURCE
-        // --------------------------------------------------------
-
+        /*
+         * Open source.
+         */
         menuRow(
                 box,
                 "Open source",
@@ -369,9 +285,203 @@ public class MainActivity extends Activity {
                 ).show()
         );
 
-
         divider(box);
 
+        /*
+         * Version.
+         */
+        TextView version =
+                label(
+                        "Version\n1.0.5",
+                        16,
+                        Color.rgb(
+                                105,
+                                105,
+                                105
+                        )
+                );
 
-        // --------------------------------------------------------
-       
+        version.setPadding(
+                0,
+                dp(10),
+                0,
+                0
+        );
+
+        box.addView(
+                version,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(70)
+                )
+        );
+
+        /*
+         * Installed date.
+         */
+        TextView date =
+                label(
+                        "Installed date\n260808",
+                        16,
+                        Color.rgb(
+                                105,
+                                105,
+                                105
+                        )
+                );
+
+        box.addView(
+                date,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(70)
+                )
+        );
+
+        /*
+         * Done button.
+         */
+        TextView done =
+                label(
+                        "Done",
+                        17,
+                        Color.rgb(
+                                55,
+                                55,
+                                55
+                        )
+                );
+
+        done.setGravity(
+                Gravity.CENTER
+        );
+
+        done.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        done.setOnClickListener(
+                v -> {
+
+                    if (
+                            kioskDialog != null
+                                    && kioskDialog.isShowing()
+                    ) {
+                        kioskDialog.dismiss();
+                    }
+                }
+        );
+
+        box.addView(
+                done,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(55)
+                )
+        );
+
+        kioskDialog.setContentView(box);
+
+        Window window =
+                kioskDialog.getWindow();
+
+        if (window != null) {
+
+            window.setBackgroundDrawableResource(
+                    android.R.color.transparent
+            );
+        }
+
+        kioskDialog.setCanceledOnTouchOutside(
+                true
+        );
+
+        kioskDialog.show();
+
+        window =
+                kioskDialog.getWindow();
+
+        if (window != null) {
+
+            int screenWidth =
+                    getResources()
+                            .getDisplayMetrics()
+                            .widthPixels;
+
+            int width =
+                    Math.min(
+                            dp(610),
+                            (int) (
+                                    screenWidth * 0.78f
+                            )
+                    );
+
+            window.setLayout(
+                    width,
+                    WindowManager.LayoutParams.WRAP_CONTENT
+            );
+        }
+    }
+
+    /*
+     * Horizontal divider.
+     */
+    private void divider(
+            LinearLayout box
+    ) {
+
+        View line =
+                new View(this);
+
+        line.setBackgroundColor(
+                Color.rgb(
+                        220,
+                        220,
+                        220
+                )
+        );
+
+        box.addView(
+                line,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(1)
+                )
+        );
+    }
+
+    /*
+     * Create a kiosk menu row.
+     */
+    private void menuRow(
+            LinearLayout box,
+            String text,
+            View.OnClickListener action
+    ) {
+
+        LinearLayout row =
+                new LinearLayout(this);
+
+        row.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
+
+        TextView left =
+                label(
+                        text,
+                        17,
+                        Color.rgb(
+                                90,
+                                90,
+                                90
+                        )
+                );
+
+        TextView right =
+                label(
+                        "View",
+                        17,
+                        Color.rgb(
+                                115,
+                                
