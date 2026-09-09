@@ -3,14 +3,11 @@ package com.infinitymeta.kiosk;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -20,6 +17,8 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -27,14 +26,30 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-    private static final String INFINITY_META_PACKAGE =
+    private static final String KIOSK_PACKAGE =
+            "com.infinitymeta.kiosk";
+
+    private static final String INFINITY_LEARN_PACKAGE =
             "apps.infinitylearn.lms";
 
     private Dialog kioskDialog;
 
+    private DevicePolicyManager devicePolicyManager;
+    private ComponentName deviceAdminComponent;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle state) {
+        super.onCreate(state);
+
+        devicePolicyManager =
+                (DevicePolicyManager)
+                        getSystemService(
+                                Context.DEVICE_POLICY_SERVICE
+                        );
+
+        deviceAdminComponent =
+                KioskDeviceAdminReceiver
+                        .getComponentName(this);
 
         getWindow().setStatusBarColor(
                 Color.rgb(103, 184, 213)
@@ -45,12 +60,15 @@ public class MainActivity extends Activity {
         );
 
         getWindow().setSoftInputMode(
-                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
+                WindowManager.LayoutParams
+                        .SOFT_INPUT_ADJUST_NOTHING
         );
 
         hideSystemBars();
 
         setContentView(new HomeView(this));
+
+        configureKiosk();
 
         enterKiosk();
     }
@@ -60,126 +78,214 @@ public class MainActivity extends Activity {
         super.onResume();
 
         hideSystemBars();
+
+        configureKiosk();
+
+        /*
+         * Re-enter kiosk when returning to this app.
+         */
         enterKiosk();
+    }
+
+    private void configureKiosk() {
+
+        if (devicePolicyManager == null) {
+            return;
+        }
+
+        try {
+
+            if (devicePolicyManager.isDeviceOwnerApp(
+                    getPackageName()
+            )) {
+
+                if (Build.VERSION.SDK_INT >=
+                        Build.VERSION_CODES.LOLLIPOP) {
+
+                    devicePolicyManager.setLockTaskPackages(
+                            deviceAdminComponent,
+                            new String[]{
+                                    KIOSK_PACKAGE,
+                                    INFINITY_LEARN_PACKAGE
+                            }
+                    );
+                }
+            }
+
+        } catch (Exception ignored) {
+        }
     }
 
     private void hideSystemBars() {
 
-        getWindow()
-                .getDecorView()
-                .setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        if (Build.VERSION.SDK_INT >=
+                Build.VERSION_CODES.R) {
+
+            Window window = getWindow();
+
+            WindowInsetsController controller =
+                    window.getInsetsController();
+
+            if (controller != null) {
+
+                controller.hide(
+                        WindowInsets.Type.statusBars()
+                                | WindowInsets.Type.navigationBars()
+                                | WindowInsets.Type.systemBars()
                 );
+
+                controller.setSystemBarsBehavior(
+                        WindowInsetsController
+                                .BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                );
+            }
+
+        } else {
+
+            getWindow()
+                    .getDecorView()
+                    .setSystemUiVisibility(
+                            View.SYSTEM_UI_FLAG_FULLSCREEN
+                                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    );
+        }
     }
 
     private void enterKiosk() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
+        if (Build.VERSION.SDK_INT <
+                Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+
+        try {
+
+            if (devicePolicyManager != null
+                    && devicePolicyManager.isDeviceOwnerApp(
+                            getPackageName()
+                    )) {
+
                 startLockTask();
-            } catch (Exception ignored) {
             }
+
+        } catch (Exception ignored) {
         }
     }
 
     private void exitKiosk() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
+        try {
+
+            if (Build.VERSION.SDK_INT >=
+                    Build.VERSION_CODES.LOLLIPOP) {
+
                 stopLockTask();
-            } catch (Exception ignored) {
             }
+
+        } catch (Exception ignored) {
         }
+
+        /*
+         * Leave the kiosk activity visible after stopping
+         * Lock Task. The tablet itself is no longer locked.
+         */
     }
 
     @Override
     public void onBackPressed() {
-        // Back disabled for kiosk mode.
+        /*
+         * Back is intentionally disabled while this
+         * kiosk activity is running.
+         */
     }
 
     private int dp(float value) {
 
         return (int) (
-                value
-                        * getResources()
-                        .getDisplayMetrics()
-                        .density
+                value *
+                        getResources()
+                                .getDisplayMetrics()
+                                .density
                         + 0.5f
         );
     }
 
-    private TextView makeText(
+    private TextView label(
             String text,
             float size,
             int color
     ) {
 
-        TextView view = new TextView(this);
+        TextView t = new TextView(this);
 
-        view.setText(text);
-        view.setTextSize(size);
-        view.setTextColor(color);
-        view.setGravity(Gravity.CENTER_VERTICAL);
+        t.setText(text);
+        t.setTextSize(size);
+        t.setTextColor(color);
+        t.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
 
-        return view;
+        return t;
     }
 
-    private GradientDrawable makeBackground(
+    private GradientDrawable rounded(
             int radius,
             int color
     ) {
 
-        GradientDrawable drawable =
+        GradientDrawable g =
                 new GradientDrawable();
 
-        drawable.setColor(color);
-        drawable.setCornerRadius(dp(radius));
+        g.setColor(color);
+        g.setCornerRadius(dp(radius));
 
-        return drawable;
+        return g;
     }
 
     private void showKioskMenu() {
 
-        if (
-                kioskDialog != null
-                        && kioskDialog.isShowing()
-        ) {
+        if (kioskDialog != null
+                && kioskDialog.isShowing()) {
+
             return;
         }
 
         kioskDialog = new Dialog(this);
 
-        LinearLayout container =
+        LinearLayout box =
                 new LinearLayout(this);
 
-        container.setOrientation(
+        box.setOrientation(
                 LinearLayout.VERTICAL
         );
 
-        container.setPadding(
+        box.setPadding(
                 dp(26),
                 dp(14),
                 dp(26),
                 dp(8)
         );
 
-        container.setBackground(
-                makeBackground(
+        box.setBackground(
+                rounded(
                         28,
                         Color.WHITE
                 )
         );
 
         TextView title =
-                makeText(
+                label(
                         "Kiosk",
                         20,
-                        Color.rgb(65, 65, 65)
+                        Color.rgb(
+                                65,
+                                65,
+                                65
+                        )
                 );
 
         title.setTypeface(
@@ -187,7 +293,7 @@ public class MainActivity extends Activity {
                 Typeface.BOLD
         );
 
-        container.addView(
+        box.addView(
                 title,
                 new LinearLayout.LayoutParams(
                         -1,
@@ -195,67 +301,51 @@ public class MainActivity extends Activity {
                 )
         );
 
-        addDivider(container);
+        divider(box);
 
-        addMenuRow(
-                container,
+        menuRow(
+                box,
                 "Settings",
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        openSettings();
-                    }
-                }
+                v -> openSettings()
         );
 
-        addMenuRow(
-                container,
+        menuRow(
+                box,
                 "Exit Kiosk",
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        confirmExit();
-                    }
-                }
+                v -> confirmExit()
         );
 
-        addMenuRow(
-                container,
+        menuRow(
+                box,
                 "Support",
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Toast.makeText(
-                                MainActivity.this,
-                                "Support",
-                                Toast.LENGTH_SHORT
-                        ).show();
-                    }
-                }
+                v -> Toast.makeText(
+                        this,
+                        "Support",
+                        Toast.LENGTH_SHORT
+                ).show()
         );
 
-        addMenuRow(
-                container,
+        menuRow(
+                box,
                 "Open source",
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Toast.makeText(
-                                MainActivity.this,
-                                "Open source",
-                                Toast.LENGTH_SHORT
-                        ).show();
-                    }
-                }
+                v -> Toast.makeText(
+                        this,
+                        "Open source",
+                        Toast.LENGTH_SHORT
+                ).show()
         );
 
-        addDivider(container);
+        divider(box);
 
         TextView version =
-                makeText(
+                label(
                         "Version\n1.0.5",
                         16,
-                        Color.rgb(105, 105, 105)
+                        Color.rgb(
+                                105,
+                                105,
+                                105
+                        )
                 );
 
         version.setPadding(
@@ -265,7 +355,7 @@ public class MainActivity extends Activity {
                 0
         );
 
-        container.addView(
+        box.addView(
                 version,
                 new LinearLayout.LayoutParams(
                         -1,
@@ -274,13 +364,17 @@ public class MainActivity extends Activity {
         );
 
         TextView date =
-                makeText(
+                label(
                         "Installed date\n260808",
                         16,
-                        Color.rgb(105, 105, 105)
+                        Color.rgb(
+                                105,
+                                105,
+                                105
+                        )
                 );
 
-        container.addView(
+        box.addView(
                 date,
                 new LinearLayout.LayoutParams(
                         -1,
@@ -289,13 +383,19 @@ public class MainActivity extends Activity {
         );
 
         TextView done =
-                makeText(
+                label(
                         "Done",
                         17,
-                        Color.rgb(55, 55, 55)
+                        Color.rgb(
+                                55,
+                                55,
+                                55
+                        )
                 );
 
-        done.setGravity(Gravity.CENTER);
+        done.setGravity(
+                Gravity.CENTER
+        );
 
         done.setTypeface(
                 Typeface.DEFAULT,
@@ -303,20 +403,10 @@ public class MainActivity extends Activity {
         );
 
         done.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (
-                                kioskDialog != null
-                                        && kioskDialog.isShowing()
-                        ) {
-                            kioskDialog.dismiss();
-                        }
-                    }
-                }
+                v -> kioskDialog.dismiss()
         );
 
-        container.addView(
+        box.addView(
                 done,
                 new LinearLayout.LayoutParams(
                         -1,
@@ -324,18 +414,27 @@ public class MainActivity extends Activity {
                 )
         );
 
-        kioskDialog.setContentView(container);
-        kioskDialog.setCanceledOnTouchOutside(true);
-        kioskDialog.show();
+        kioskDialog.setContentView(box);
 
-        Window window =
+        Window w =
                 kioskDialog.getWindow();
 
-        if (window != null) {
+        if (w != null) {
 
-            window.setBackgroundDrawableResource(
+            w.setBackgroundDrawableResource(
                     android.R.color.transparent
             );
+        }
+
+        kioskDialog.setCanceledOnTouchOutside(
+                true
+        );
+
+        kioskDialog.show();
+
+        w = kioskDialog.getWindow();
+
+        if (w != null) {
 
             int width = Math.min(
                     dp(610),
@@ -347,25 +446,30 @@ public class MainActivity extends Activity {
                     )
             );
 
-            window.setLayout(
+            w.setLayout(
                     width,
-                    WindowManager.LayoutParams.WRAP_CONTENT
+                    WindowManager.LayoutParams
+                            .WRAP_CONTENT
             );
         }
     }
 
-    private void addDivider(
-            LinearLayout container
+    private void divider(
+            LinearLayout box
     ) {
 
-        View divider = new View(this);
+        View line = new View(this);
 
-        divider.setBackgroundColor(
-                Color.rgb(220, 220, 220)
+        line.setBackgroundColor(
+                Color.rgb(
+                        220,
+                        220,
+                        220
+                )
         );
 
-        container.addView(
-                divider,
+        box.addView(
+                line,
                 new LinearLayout.LayoutParams(
                         -1,
                         dp(1)
@@ -373,10 +477,10 @@ public class MainActivity extends Activity {
         );
     }
 
-    private void addMenuRow(
-            LinearLayout container,
+    private void menuRow(
+            LinearLayout box,
             String text,
-            View.OnClickListener listener
+            View.OnClickListener action
     ) {
 
         LinearLayout row =
@@ -387,20 +491,30 @@ public class MainActivity extends Activity {
         );
 
         TextView left =
-                makeText(
+                label(
                         text,
                         17,
-                        Color.rgb(90, 90, 90)
+                        Color.rgb(
+                                90,
+                                90,
+                                90
+                        )
                 );
 
         TextView right =
-                makeText(
+                label(
                         "View",
                         17,
-                        Color.rgb(115, 135, 205)
+                        Color.rgb(
+                                115,
+                                135,
+                                205
+                        )
                 );
 
-        right.setGravity(Gravity.CENTER);
+        right.setGravity(
+                Gravity.CENTER
+        );
 
         row.addView(
                 left,
@@ -419,26 +533,40 @@ public class MainActivity extends Activity {
                 )
         );
 
-        row.setOnClickListener(listener);
+        row.setOnClickListener(action);
 
-        container.addView(row);
+        box.addView(row);
     }
 
     private void confirmExit() {
 
         new AlertDialog.Builder(this)
+
                 .setTitle("Exit Kiosk")
+
                 .setMessage(
                         "Are you sure you want to exit kiosk mode?"
                 )
+
                 .setNegativeButton(
                         "Cancel",
                         null
                 )
+
                 .setPositiveButton(
                         "Exit",
-                        (dialog, which) -> exitKiosk()
+                        (dialog, which) -> {
+
+                            if (kioskDialog != null
+                                    && kioskDialog.isShowing()) {
+
+                                kioskDialog.dismiss();
+                            }
+
+                            exitKiosk();
+                        }
                 )
+
                 .show();
     }
 
@@ -462,137 +590,75 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * Launch the installed Infinity Meta application.
-     */
-    private void openInfinityMeta() {
+    private void openInfinityLearn() {
 
         try {
 
-            PackageManager pm =
-                    getPackageManager();
-
             Intent launchIntent =
-                    pm.getLaunchIntentForPackage(
-                            INFINITY_META_PACKAGE
-                    );
+                    getPackageManager()
+                            .getLaunchIntentForPackage(
+                                    INFINITY_LEARN_PACKAGE
+                            );
 
-            if (launchIntent != null) {
+            if (launchIntent == null) {
 
-                launchIntent.addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK
-                                | Intent.FLAG_ACTIVITY_CLEAR_TOP
-                );
-
-                startActivity(launchIntent);
+                Toast.makeText(
+                        this,
+                        "Infinity Learn is not installed",
+                        Toast.LENGTH_LONG
+                ).show();
 
                 return;
             }
 
-            /*
-             * Fallback:
-             * Find the launcher activity belonging to
-             * apps.infinitylearn.lms.
-             */
-            Intent launcherIntent =
-                    new Intent(
-                            Intent.ACTION_MAIN
-                    );
-
-            launcherIntent.addCategory(
-                    Intent.CATEGORY_LAUNCHER
+            launchIntent.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TOP
             );
 
-            java.util.List<android.content.pm.ResolveInfo> apps =
-                    pm.queryIntentActivities(
-                            launcherIntent,
-                            0
-                    );
-
-            for (
-                    android.content.pm.ResolveInfo info
-                    : apps
-            ) {
-
-                if (
-                        info.activityInfo != null
-                                &&
-                        INFINITY_META_PACKAGE.equals(
-                                info.activityInfo.packageName
-                        )
-                ) {
-
-                    Intent explicitIntent =
-                            new Intent(
-                                    Intent.ACTION_MAIN
-                            );
-
-                    explicitIntent.addCategory(
-                            Intent.CATEGORY_LAUNCHER
-                    );
-
-                    explicitIntent.setClassName(
-                            info.activityInfo.packageName,
-                            info.activityInfo.name
-                    );
-
-                    explicitIntent.addFlags(
-                            Intent.FLAG_ACTIVITY_NEW_TASK
-                                    | Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    );
-
-                    startActivity(explicitIntent);
-
-                    return;
-                }
-            }
-
-            Toast.makeText(
-                    this,
-                    "Infinity Meta app is not installed",
-                    Toast.LENGTH_LONG
-            ).show();
+            startActivity(launchIntent);
 
         } catch (Exception e) {
 
             Toast.makeText(
                     this,
-                    "Unable to open Infinity Meta",
+                    "Unable to open Infinity Learn",
                     Toast.LENGTH_LONG
             ).show();
         }
     }
 
-    /*
-     * Home screen with the exact supplied wallpaper.
-     */
     private class HomeView extends View {
 
-        private Bitmap wallpaper;
-
-        private final Paint paint =
-                new Paint(
-                        Paint.FILTER_BITMAP_FLAG
-                );
+        private final android.graphics.Bitmap wallpaper;
 
         HomeView(Context context) {
 
             super(context);
 
             wallpaper =
-                    BitmapFactory.decodeResource(
-                            getResources(),
-                            R.drawable.infinity_wallpaper
-                    );
+                    android.graphics.BitmapFactory
+                            .decodeResource(
+                                    getResources(),
+                                    R.drawable.infinity_wallpaper
+                            );
 
             setFocusable(true);
             setClickable(true);
         }
 
         @Override
-        protected void onDraw(Canvas canvas) {
+        protected void onDraw(
+                android.graphics.Canvas canvas
+        ) {
 
             super.onDraw(canvas);
+
+            android.graphics.Paint paint =
+                    new android.graphics.Paint(
+                            android.graphics.Paint
+                                    .FILTER_BITMAP_FLAG
+                    );
 
             if (wallpaper != null) {
 
@@ -607,12 +673,6 @@ public class MainActivity extends Activity {
                         ),
                         paint
                 );
-
-            } else {
-
-                canvas.drawColor(
-                        Color.WHITE
-                );
             }
         }
 
@@ -621,10 +681,8 @@ public class MainActivity extends Activity {
                 MotionEvent event
         ) {
 
-            if (
-                    event.getAction()
-                            == MotionEvent.ACTION_UP
-            ) {
+            if (event.getAction()
+                    == MotionEvent.ACTION_UP) {
 
                 float x = event.getX();
                 float y = event.getY();
@@ -644,22 +702,16 @@ public class MainActivity extends Activity {
                 }
 
                 /*
-                 * Infinity Meta icon on the wallpaper.
-                 *
-                 * This is positioned over the icon shown
-                 * in the supplied image.
+                 * Infinity Meta logo.
+                 * Opens Infinity Learn.
                  */
                 if (
-                        x > getWidth() * 0.03f
+                        x < getWidth() * 0.32f
                                 &&
-                        x < getWidth() * 0.24f
-                                &&
-                        y > getHeight() * 0.22f
-                                &&
-                        y < getHeight() * 0.39f
+                        y < getHeight() * 0.30f
                 ) {
 
-                    openInfinityMeta();
+                    openInfinityLearn();
 
                     return true;
                 }
