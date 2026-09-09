@@ -128,7 +128,7 @@ jobs:
           android.useAndroidX=true
           EOF
 
-            - name: Build APK
+             - name: Build APK
         working-directory: build_project
         run: gradle assembleRelease --stacktrace
 
