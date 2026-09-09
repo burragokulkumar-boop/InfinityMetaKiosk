@@ -113,12 +113,13 @@ jobs:
                   versionName "1.0"
               }
 
-              buildTypes {
-                  release {
-                      minifyEnabled false
-                      shrinkResources false
-                  }
-              }
+             buildTypes {
+                 release {
+                     minifyEnabled false
+                     shrinkResources false
+                     signingConfig signingConfigs.debug
+                 }
+            } 
           }
           EOF
 
