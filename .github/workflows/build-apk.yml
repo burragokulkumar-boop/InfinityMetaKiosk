@@ -11,57 +11,129 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
         with:
-          channel: stable
-          cache: true
+          distribution: temurin
+          java-version: '17'
 
-      - name: Extract project
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '8.7'
+
+      - name: Create Android project structure
+        shell: bash
         run: |
-          unzip -o InfinityMetaKiosk.zip -d extracted
+          set -e
 
-      - name: Create Flutter Android project
-        run: |
-          flutter create \
-            --platforms=android \
-            --project-name=infinity_meta_kiosk \
-            build_project
+          mkdir -p build_project/app/src/main/java
+          mkdir -p build_project/app/src/main/res/values
+          mkdir -p build_project/app/src/main/res/xml
+          mkdir -p build_project/app/src/main/res/drawable
 
-      - name: Copy Flutter source
-        run: |
-          cp extracted/InfinityMetaKiosk/pubspec.yaml build_project/pubspec.yaml
-          cp extracted/InfinityMetaKiosk/analysis_options.yaml build_project/analysis_options.yaml
-          cp -r extracted/InfinityMetaKiosk/lib build_project/
+          PACKAGE=$(grep -m1 '^package ' MainActivity.java | sed 's/package //;s/;//')
 
-      - name: Copy native Android files
-        run: |
-          cp extracted/InfinityMetaKiosk/android/app/build.gradle \
-             build_project/android/app/build.gradle
+          if [ -z "$PACKAGE" ]; then
+            echo "ERROR: Could not find Java package in MainActivity.java"
+            exit 1
+          fi
 
-          cp extracted/InfinityMetaKiosk/android/app/src/main/AndroidManifest.xml \
-             build_project/android/app/src/main/AndroidManifest.xml
+          echo "Detected package: $PACKAGE"
 
-          cp -r extracted/InfinityMetaKiosk/android/app/src/main/kotlin \
-             build_project/android/app/src/main/
+          PACKAGE_PATH=$(echo "$PACKAGE" | tr '.' '/')
+          mkdir -p "build_project/app/src/main/java/$PACKAGE_PATH"
 
-          mkdir -p build_project/android/app/src/main/res/xml
-          cp extracted/InfinityMetaKiosk/android/app/src/main/res/xml/device_admin_receiver.xml \
-             build_project/android/app/src/main/res/xml/
+          for FILE in MainActivity.java KioskDeviceAdminReceiver.java; do
+            if [ -f "$FILE" ]; then
+              cp "$FILE" "build_project/app/src/main/java/$PACKAGE_PATH/"
+            fi
+          done
 
-          cp extracted/InfinityMetaKiosk/android/gradle.properties \
-             build_project/android/gradle.properties
+          cp AndroidManifest.xml \
+            build_project/app/src/main/AndroidManifest.xml
 
-      - name: Get Flutter packages
-        working-directory: build_project
-        run: flutter pub get
+          for FILE in colors.xml strings.xml themes.xml; do
+            if [ -f "$FILE" ]; then
+              cp "$FILE" "build_project/app/src/main/res/values/$FILE"
+            fi
+          done
+
+          if [ -f device_admin_receiver.xml ]; then
+            cp device_admin_receiver.xml \
+              build_project/app/src/main/res/xml/device_admin_receiver.xml
+          fi
+
+          if [ -f infinity_wallpaper.jpg ]; then
+            cp infinity_wallpaper.jpg \
+              build_project/app/src/main/res/drawable/infinity_wallpaper.jpg
+          fi
+
+          cat > build_project/settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "InfinityMetaKiosk"
+          include(":app")
+          EOF
+
+          cat > build_project/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.6.1' apply false
+          }
+          EOF
+
+          cat > build_project/app/build.gradle <<EOF
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace '$PACKAGE'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId '$PACKAGE'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 1
+                  versionName "1.0"
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      shrinkResources false
+                  }
+              }
+          }
+          EOF
+
+          cat > build_project/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          EOF
 
       - name: Build APK
         working-directory: build_project
-        run: flutter build apk --release
+        run: gradle assembleRelease --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: InfinityMetaKiosk-APK
-          path: build_project/build/app/outputs/flutter-apk/*.apk
+          path: build_project/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
