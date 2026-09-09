@@ -26,9 +26,6 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-    /*
-     * Infinity Learn application package.
-     */
     private static final String INFINITY_META_PACKAGE =
             "apps.infinitylearn.lms";
 
@@ -65,12 +62,6 @@ public class MainActivity extends Activity {
         enterKiosk();
     }
 
-    /*
-     * Hide status and navigation bars.
-     *
-     * Uses the older SYSTEM_UI_FLAG API for maximum
-     * compatibility with the current project.
-     */
     private void hideSystemBars() {
 
         getWindow()
@@ -85,13 +76,9 @@ public class MainActivity extends Activity {
                 );
     }
 
-    /*
-     * Enter Android Lock Task mode.
-     */
     private void enterKiosk() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
             try {
                 startLockTask();
             } catch (Exception ignored) {
@@ -99,13 +86,9 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * Exit Android Lock Task mode.
-     */
     private void exitKiosk() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
             try {
                 stopLockTask();
             } catch (Exception ignored) {
@@ -113,17 +96,11 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * Disable the Back button while this activity is running.
-     */
     @Override
     public void onBackPressed() {
-        // Intentionally disabled for kiosk mode.
+        // Back is disabled while the kiosk screen is active.
     }
 
-    /*
-     * Convert dp to pixels.
-     */
     private int dp(float value) {
 
         return (int) (
@@ -135,32 +112,23 @@ public class MainActivity extends Activity {
         );
     }
 
-    /*
-     * Create a TextView.
-     */
-    private TextView label(
+    private TextView makeText(
             String text,
             float size,
             int color
     ) {
 
-        TextView textView =
-                new TextView(this);
+        TextView view = new TextView(this);
 
-        textView.setText(text);
-        textView.setTextSize(size);
-        textView.setTextColor(color);
-        textView.setGravity(
-                Gravity.CENTER_VERTICAL
-        );
+        view.setText(text);
+        view.setTextSize(size);
+        view.setTextColor(color);
+        view.setGravity(Gravity.CENTER_VERTICAL);
 
-        return textView;
+        return view;
     }
 
-    /*
-     * Create a rounded background.
-     */
-    private GradientDrawable rounded(
+    private GradientDrawable makeBackground(
             int radius,
             int color
     ) {
@@ -169,16 +137,11 @@ public class MainActivity extends Activity {
                 new GradientDrawable();
 
         drawable.setColor(color);
-        drawable.setCornerRadius(
-                dp(radius)
-        );
+        drawable.setCornerRadius(dp(radius));
 
         return drawable;
     }
 
-    /*
-     * Show kiosk menu.
-     */
     private void showKioskMenu() {
 
         if (
@@ -188,35 +151,31 @@ public class MainActivity extends Activity {
             return;
         }
 
-        kioskDialog =
-                new Dialog(this);
+        kioskDialog = new Dialog(this);
 
-        LinearLayout box =
+        LinearLayout container =
                 new LinearLayout(this);
 
-        box.setOrientation(
+        container.setOrientation(
                 LinearLayout.VERTICAL
         );
 
-        box.setPadding(
+        container.setPadding(
                 dp(26),
                 dp(14),
                 dp(26),
                 dp(8)
         );
 
-        box.setBackground(
-                rounded(
+        container.setBackground(
+                makeBackground(
                         28,
                         Color.WHITE
                 )
         );
 
-        /*
-         * Title.
-         */
         TextView title =
-                label(
+                makeText(
                         "Kiosk",
                         20,
                         Color.rgb(
@@ -231,7 +190,7 @@ public class MainActivity extends Activity {
                 Typeface.BOLD
         );
 
-        box.addView(
+        container.addView(
                 title,
                 new LinearLayout.LayoutParams(
                         -1,
@@ -239,59 +198,64 @@ public class MainActivity extends Activity {
                 )
         );
 
-        divider(box);
+        addDivider(container);
 
-        /*
-         * Settings.
-         */
-        menuRow(
-                box,
+        addMenuRow(
+                container,
                 "Settings",
-                v -> openSettings()
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openSettings();
+                    }
+                }
         );
 
-        /*
-         * Exit kiosk.
-         */
-        menuRow(
-                box,
+        addMenuRow(
+                container,
                 "Exit Kiosk",
-                v -> confirmExit()
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        confirmExit();
+                    }
+                }
         );
 
-        /*
-         * Support.
-         */
-        menuRow(
-                box,
+        addMenuRow(
+                container,
                 "Support",
-                v -> Toast.makeText(
-                        MainActivity.this,
-                        "Support",
-                        Toast.LENGTH_SHORT
-                ).show()
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(
+                                MainActivity.this,
+                                "Support",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                }
         );
 
-        /*
-         * Open source.
-         */
-        menuRow(
-                box,
+        addMenuRow(
+                container,
                 "Open source",
-                v -> Toast.makeText(
-                        MainActivity.this,
-                        "Open source",
-                        Toast.LENGTH_SHORT
-                ).show()
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(
+                                MainActivity.this,
+                                "Open source",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                }
         );
 
-        divider(box);
+        addDivider(container);
 
-        /*
-         * Version.
-         */
         TextView version =
-                label(
+                makeText(
                         "Version\n1.0.5",
                         16,
                         Color.rgb(
@@ -308,7 +272,7 @@ public class MainActivity extends Activity {
                 0
         );
 
-        box.addView(
+        container.addView(
                 version,
                 new LinearLayout.LayoutParams(
                         -1,
@@ -316,11 +280,8 @@ public class MainActivity extends Activity {
                 )
         );
 
-        /*
-         * Installed date.
-         */
         TextView date =
-                label(
+                makeText(
                         "Installed date\n260808",
                         16,
                         Color.rgb(
@@ -330,7 +291,7 @@ public class MainActivity extends Activity {
                         )
                 );
 
-        box.addView(
+        container.addView(
                 date,
                 new LinearLayout.LayoutParams(
                         -1,
@@ -338,11 +299,8 @@ public class MainActivity extends Activity {
                 )
         );
 
-        /*
-         * Done button.
-         */
         TextView done =
-                label(
+                makeText(
                         "Done",
                         17,
                         Color.rgb(
@@ -352,9 +310,7 @@ public class MainActivity extends Activity {
                         )
                 );
 
-        done.setGravity(
-                Gravity.CENTER
-        );
+        done.setGravity(Gravity.CENTER);
 
         done.setTypeface(
                 Typeface.DEFAULT,
@@ -362,18 +318,21 @@ public class MainActivity extends Activity {
         );
 
         done.setOnClickListener(
-                v -> {
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
 
-                    if (
-                            kioskDialog != null
-                                    && kioskDialog.isShowing()
-                    ) {
-                        kioskDialog.dismiss();
+                        if (
+                                kioskDialog != null
+                                        && kioskDialog.isShowing()
+                        ) {
+                            kioskDialog.dismiss();
+                        }
                     }
                 }
         );
 
-        box.addView(
+        container.addView(
                 done,
                 new LinearLayout.LayoutParams(
                         -1,
@@ -381,7 +340,11 @@ public class MainActivity extends Activity {
                 )
         );
 
-        kioskDialog.setContentView(box);
+        kioskDialog.setContentView(container);
+
+        kioskDialog.setCanceledOnTouchOutside(true);
+
+        kioskDialog.show();
 
         Window window =
                 kioskDialog.getWindow();
@@ -391,31 +354,16 @@ public class MainActivity extends Activity {
             window.setBackgroundDrawableResource(
                     android.R.color.transparent
             );
-        }
 
-        kioskDialog.setCanceledOnTouchOutside(
-                true
-        );
-
-        kioskDialog.show();
-
-        window =
-                kioskDialog.getWindow();
-
-        if (window != null) {
-
-            int screenWidth =
-                    getResources()
-                            .getDisplayMetrics()
-                            .widthPixels;
-
-            int width =
-                    Math.min(
-                            dp(610),
-                            (int) (
-                                    screenWidth * 0.78f
-                            )
-                    );
+            int width = Math.min(
+                    dp(610),
+                    (int) (
+                            getResources()
+                                    .getDisplayMetrics()
+                                    .widthPixels
+                                    * 0.78f
+                    )
+            );
 
             window.setLayout(
                     width,
@@ -424,17 +372,13 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * Horizontal divider.
-     */
-    private void divider(
-            LinearLayout box
+    private void addDivider(
+            LinearLayout container
     ) {
 
-        View line =
-                new View(this);
+        View divider = new View(this);
 
-        line.setBackgroundColor(
+        divider.setBackgroundColor(
                 Color.rgb(
                         220,
                         220,
@@ -442,8 +386,8 @@ public class MainActivity extends Activity {
                 )
         );
 
-        box.addView(
-                line,
+        container.addView(
+                divider,
                 new LinearLayout.LayoutParams(
                         -1,
                         dp(1)
@@ -451,13 +395,10 @@ public class MainActivity extends Activity {
         );
     }
 
-    /*
-     * Create a kiosk menu row.
-     */
-    private void menuRow(
-            LinearLayout box,
+    private void addMenuRow(
+            LinearLayout container,
             String text,
-            View.OnClickListener action
+            View.OnClickListener listener
     ) {
 
         LinearLayout row =
@@ -468,7 +409,7 @@ public class MainActivity extends Activity {
         );
 
         TextView left =
-                label(
+                makeText(
                         text,
                         17,
                         Color.rgb(
@@ -479,9 +420,220 @@ public class MainActivity extends Activity {
                 );
 
         TextView right =
-                label(
+                makeText(
                         "View",
                         17,
                         Color.rgb(
                                 115,
-                                
+                                135,
+                                205
+                        )
+                );
+
+        right.setGravity(
+                Gravity.CENTER
+        );
+
+        row.addView(
+                left,
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(68),
+                        1
+                )
+        );
+
+        row.addView(
+                right,
+                new LinearLayout.LayoutParams(
+                        dp(72),
+                        dp(68)
+                )
+        );
+
+        row.setOnClickListener(listener);
+
+        container.addView(row);
+    }
+
+    private void confirmExit() {
+
+        new AlertDialog.Builder(this)
+                .setTitle("Exit Kiosk")
+                .setMessage(
+                        "Are you sure you want to exit kiosk mode?"
+                )
+                .setNegativeButton(
+                        "Cancel",
+                        null
+                )
+                .setPositiveButton(
+                        "Exit",
+                        new android.content.DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(
+                                    android.content.DialogInterface dialog,
+                                    int which
+                            ) {
+                                exitKiosk();
+                            }
+                        }
+                )
+                .show();
+    }
+
+    private void openSettings() {
+
+        try {
+
+            Intent intent =
+                    new Intent(
+                            Settings.ACTION_SETTINGS
+                    );
+
+            startActivity(intent);
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Settings unavailable",
+                    Toast.LENGTH_SHORT
+            ).show();
+        }
+    }
+
+    private void openInfinityMeta() {
+
+        try {
+
+            Intent launchIntent =
+                    getPackageManager()
+                            .getLaunchIntentForPackage(
+                                    INFINITY_META_PACKAGE
+                            );
+
+            if (launchIntent == null) {
+
+                Toast.makeText(
+                        this,
+                        "Infinity Meta app is not installed",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            launchIntent.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TOP
+            );
+
+            startActivity(launchIntent);
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Unable to open Infinity Meta",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private class HomeView extends View {
+
+        private Bitmap wallpaper;
+
+        private final Paint paint =
+                new Paint(
+                        Paint.FILTER_BITMAP_FLAG
+                );
+
+        HomeView(Context context) {
+
+            super(context);
+
+            wallpaper =
+                    BitmapFactory.decodeResource(
+                            getResources(),
+                            R.drawable.infinity_wallpaper
+                    );
+
+            setFocusable(true);
+            setClickable(true);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+
+            super.onDraw(canvas);
+
+            if (wallpaper != null) {
+
+                canvas.drawBitmap(
+                        wallpaper,
+                        null,
+                        new android.graphics.Rect(
+                                0,
+                                0,
+                                getWidth(),
+                                getHeight()
+                        ),
+                        paint
+                );
+
+            } else {
+
+                canvas.drawColor(
+                        Color.WHITE
+                );
+            }
+        }
+
+        @Override
+        public boolean onTouchEvent(
+                MotionEvent event
+        ) {
+
+            if (
+                    event.getAction()
+                            == MotionEvent.ACTION_UP
+            ) {
+
+                float x = event.getX();
+                float y = event.getY();
+
+                /*
+                 * Bottom-left information button.
+                 */
+                if (
+                        x < getWidth() * 0.13f
+                                &&
+                        y > getHeight() * 0.88f
+                ) {
+
+                    showKioskMenu();
+
+                    return true;
+                }
+
+                /*
+                 * Infinity Meta logo.
+                 */
+                if (
+                        x < getWidth() * 0.32f
+                                &&
+                        y < getHeight() * 0.30f
+                ) {
+
+                    openInfinityMeta();
+
+                    return true;
+                }
+            }
+
+            return true;
+        }
+    }
+}
