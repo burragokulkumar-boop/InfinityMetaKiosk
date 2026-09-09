@@ -2,7 +2,7 @@
     <application
         android:theme="@style/AppTheme"
         android:label="Infinity Meta"
-        android:icon="@drawable/infinity_meta_icon"
+        android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:supportsRtl="true">
         <activity
