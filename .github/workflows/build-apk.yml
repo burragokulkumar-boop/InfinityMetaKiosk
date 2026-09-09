@@ -1,4 +1,4 @@
-)name: Build InfinityMetaKiosk APK
+name: Build InfinityMetaKiosk APK
 
 on:
   workflow_dispatch:
