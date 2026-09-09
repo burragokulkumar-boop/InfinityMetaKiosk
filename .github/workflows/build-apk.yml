@@ -128,9 +128,14 @@ jobs:
           android.useAndroidX=true
           EOF
 
-      - name: Build APK
+            - name: Build APK
         working-directory: build_project
         run: gradle assembleRelease --stacktrace
+
+      - name: Check APK
+        run: |
+          echo "=== APK files generated ==="
+          find build_project/app/build/outputs -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
