@@ -42,6 +42,7 @@ jobs:
           echo "Detected package: $PACKAGE"
 
           PACKAGE_PATH=$(echo "$PACKAGE" | tr '.' '/')
+
           mkdir -p "build_project/app/src/main/java/$PACKAGE_PATH"
 
           for FILE in MainActivity.java KioskDeviceAdminReceiver.java; do
@@ -55,7 +56,8 @@ jobs:
 
           for FILE in colors.xml strings.xml themes.xml; do
             if [ -f "$FILE" ]; then
-              cp "$FILE" "build_project/app/src/main/res/values/$FILE"
+              cp "$FILE" \
+                "build_project/app/src/main/res/values/$FILE"
             fi
           done
 
@@ -113,13 +115,13 @@ jobs:
                   versionName "1.0"
               }
 
-             buildTypes {
-                 release {
-                     minifyEnabled false
-                     shrinkResources false
-                     signingConfig signingConfigs.debug
-                 }
-            } 
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      shrinkResources false
+                      signingConfig signingConfigs.debug
+                  }
+              }
           }
           EOF
 
@@ -128,9 +130,11 @@ jobs:
           android.useAndroidX=true
           EOF
 
-             - name: Build APK
+      - name: Build APK
         working-directory: build_project
-        run: gradle assembleRelease --stacktrace
+        run: |
+          set -e
+          gradle :app:assembleRelease --stacktrace
 
       - name: Check APK
         run: |
@@ -141,5 +145,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: InfinityMetaKiosk-APK
-          path: build_project/app/build/outputs/apk/release/*.apk
+          path: build_project/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
