@@ -42,7 +42,6 @@ jobs:
           echo "Detected package: $PACKAGE"
 
           PACKAGE_PATH=$(echo "$PACKAGE" | tr '.' '/')
-
           mkdir -p "build_project/app/src/main/java/$PACKAGE_PATH"
 
           for FILE in MainActivity.java KioskDeviceAdminReceiver.java; do
@@ -69,6 +68,14 @@ jobs:
           if [ -f infinity_wallpaper.jpg ]; then
             cp infinity_wallpaper.jpg \
               build_project/app/src/main/res/drawable/infinity_wallpaper.jpg
+          fi
+
+          if [ -f infinity_meta_icon.png ]; then
+            cp infinity_meta_icon.png \
+              build_project/app/src/main/res/drawable/infinity_meta_icon.png
+          else
+            echo "ERROR: infinity_meta_icon.png was not found in the repository root."
+            exit 1
           fi
 
           cat > build_project/settings.gradle <<'EOF'
