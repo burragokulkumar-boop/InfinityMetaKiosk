@@ -34,6 +34,9 @@ import java.util.List;
 
 public class MainActivity extends Activity {
 
+    /*
+     * Package name of the Infinity Learn application.
+     */
     private static final String INFINITY_META_PACKAGE =
             "apps.infinitylearn.lms";
 
@@ -43,8 +46,8 @@ public class MainActivity extends Activity {
     private Dialog kioskDialog;
 
     /*
-     * Becomes true when the user deliberately exits kiosk mode.
-     * This prevents onResume() from immediately starting Lock Task again.
+     * Once Exit Kiosk is pressed, this prevents onResume()
+     * from hiding the system bars or restarting kiosk behavior.
      */
     private boolean kioskExitRequested = false;
 
@@ -80,8 +83,8 @@ public class MainActivity extends Activity {
         setContentView(new HomeView(this));
 
         /*
-         * Only configure Lock Task when this app is actually
-         * Device Owner. This prevents crashes before provisioning.
+         * Configure Lock Task only when this application
+         * is actually Device Owner.
          */
         configureAndEnterKiosk();
     }
@@ -91,10 +94,8 @@ public class MainActivity extends Activity {
         super.onResume();
 
         /*
-         * IMPORTANT:
-         *
-         * After Exit Kiosk, do not hide the Android system UI again.
-         * This allows normal tablet navigation.
+         * Do not restore kiosk UI after the user has
+         * deliberately exited kiosk mode.
          */
         if (!kioskExitRequested) {
             hideSystemBars();
@@ -102,7 +103,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Configure the Lock Task allowlist and enter kiosk mode.
+     * Configure Lock Task and enter kiosk mode.
      */
     private void configureAndEnterKiosk() {
 
@@ -114,7 +115,7 @@ public class MainActivity extends Activity {
         try {
 
             /*
-             * The app must be Device Owner.
+             * The application must be Device Owner.
              */
             if (!devicePolicyManager.isDeviceOwnerApp(
                     getPackageName()
@@ -123,8 +124,8 @@ public class MainActivity extends Activity {
             }
 
             /*
-             * Allow our kiosk app and Infinity Learn to operate
-             * while Lock Task mode is active.
+             * Allow our kiosk application and Infinity Learn
+             * to operate while Lock Task is active.
              */
             List<String> packages =
                     new ArrayList<>();
@@ -138,7 +139,7 @@ public class MainActivity extends Activity {
             );
 
             /*
-             * Enter Lock Task only after the allowlist is configured.
+             * Enter Lock Task after the allowlist is configured.
              */
             if (Build.VERSION.SDK_INT >=
                     Build.VERSION_CODES.LOLLIPOP) {
@@ -156,19 +157,22 @@ public class MainActivity extends Activity {
 
         } catch (Exception ignored) {
             /*
-             * Never crash the application because kiosk
-             * configuration failed.
+             * Never crash if kiosk configuration fails.
              */
         }
     }
 
     /**
-     * Exit Lock Task mode and restore normal Android UI.
+     * Exit Lock Task mode and return the tablet to normal use.
      *
-     * Device Owner is NOT removed here.
+     * Device Owner is NOT removed.
      */
     private void exitKiosk() {
 
+        /*
+         * Tell onResume() not to put the app back into
+         * kiosk presentation mode.
+         */
         kioskExitRequested = true;
 
         try {
@@ -183,7 +187,7 @@ public class MainActivity extends Activity {
         }
 
         /*
-         * Restore Android status/navigation bars.
+         * Restore normal Android system bars.
          */
         try {
 
@@ -220,6 +224,27 @@ public class MainActivity extends Activity {
                 "Kiosk mode exited",
                 Toast.LENGTH_SHORT
         ).show();
+
+        /*
+         * Remove this kiosk activity from the recent-task stack
+         * and return control to the normal Android launcher.
+         */
+        try {
+
+            if (Build.VERSION.SDK_INT >=
+                    Build.VERSION_CODES.LOLLIPOP) {
+
+                finishAndRemoveTask();
+
+            } else {
+
+                finish();
+            }
+
+        } catch (Exception ignored) {
+
+            finish();
+        }
     }
 
     /**
@@ -269,15 +294,14 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Consume Back while the kiosk is active.
+     * Consume Back while this kiosk activity is active.
+     *
+     * The user can use the Exit Kiosk option instead.
      */
     @Override
     public void onBackPressed() {
-
         /*
-         * Do nothing while the kiosk screen is active.
-         *
-         * Exit Kiosk is provided through the information menu.
+         * Intentionally empty.
          */
     }
 
@@ -330,7 +354,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Show kiosk information menu.
+     * Show the kiosk information menu.
      */
     private void showKioskMenu() {
 
@@ -657,8 +681,8 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Settings are intentionally not opened while Lock Task
-     * is active. The user should exit kiosk first.
+     * Settings are not launched while Lock Task is active.
+     * Exit Kiosk first, then the tablet can be used normally.
      */
     private void openSettings() {
 
@@ -670,7 +694,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Launch the real Infinity Learn application.
+     * Launch the actual Infinity Learn application.
      */
     private void openInfinityMeta() {
 
@@ -740,7 +764,7 @@ public class MainActivity extends Activity {
             super(context);
 
             /*
-             * Put the exact JPG wallpaper here:
+             * Expected file:
              *
              * app/src/main/res/drawable/infinity_wallpaper.jpg
              */
@@ -779,7 +803,7 @@ public class MainActivity extends Activity {
             } else {
 
                 /*
-                 * Safe fallback if the wallpaper is missing.
+                 * Safe fallback if wallpaper cannot be loaded.
                  */
                 canvas.drawColor(
                         Color.rgb(
