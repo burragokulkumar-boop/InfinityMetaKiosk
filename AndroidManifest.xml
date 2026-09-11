@@ -2,7 +2,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Allow this kiosk app to detect and launch Infinity Learn -->
+    <!-- Allow Infinity Meta to detect and launch Infinity Learn -->
     <queries>
         <package android:name="apps.infinitylearn.lms" />
     </queries>
@@ -33,10 +33,13 @@
 
         </activity>
 
+        <!-- Device Administrator / Device Owner receiver -->
         <receiver
             android:name=".KioskDeviceAdminReceiver"
             android:permission="android.permission.BIND_DEVICE_ADMIN"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/app_name"
+            android:description="@string/app_name">
 
             <meta-data
                 android:name="android.app.device_admin"
