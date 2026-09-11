@@ -9,12 +9,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -34,14 +34,6 @@ import java.util.List;
 
 public class MainActivity extends Activity {
 
-    private static final int BLUE = Color.rgb(45, 83, 180);
-
-    /*
-     * REAL Infinity Learn application package.
-     *
-     * This is the package from:
-     * https://play.google.com/store/apps/details?id=apps.infinitylearn.lms
-     */
     private static final String INFINITY_META_PACKAGE =
             "apps.infinitylearn.lms";
 
@@ -51,9 +43,8 @@ public class MainActivity extends Activity {
     private Dialog kioskDialog;
 
     /*
-     * Prevents onResume() from automatically putting the tablet
-     * back into kiosk mode after the user deliberately presses
-     * "Exit Kiosk".
+     * Becomes true when the user deliberately exits kiosk mode.
+     * This prevents onResume() from immediately starting Lock Task again.
      */
     private boolean kioskExitRequested = false;
 
@@ -89,13 +80,8 @@ public class MainActivity extends Activity {
         setContentView(new HomeView(this));
 
         /*
-         * Only enter Lock Task when this application really is
-         * Device Owner and the required applications can be
-         * allowlisted.
-         *
-         * This is intentionally protected so the application
-         * does NOT crash when Device Owner has not yet been
-         * configured.
+         * Only configure Lock Task when this app is actually
+         * Device Owner. This prevents crashes before provisioning.
          */
         configureAndEnterKiosk();
     }
@@ -104,43 +90,31 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        hideSystemBars();
-
         /*
-         * Do NOT blindly call startLockTask() here.
+         * IMPORTANT:
          *
-         * This is important because pressing "Exit Kiosk" should
-         * actually allow the tablet to return to normal operation.
+         * After Exit Kiosk, do not hide the Android system UI again.
+         * This allows normal tablet navigation.
          */
         if (!kioskExitRequested) {
-            /*
-             * If Lock Task is already active, Android keeps it active.
-             * We deliberately do not force it again here.
-             */
+            hideSystemBars();
         }
     }
 
     /**
-     * Configure the Device Owner Lock Task allowlist and then
-     * enter kiosk mode when possible.
+     * Configure the Lock Task allowlist and enter kiosk mode.
      */
     private void configureAndEnterKiosk() {
 
-        if (devicePolicyManager == null) {
-            return;
-        }
-
-        if (adminComponent == null) {
+        if (devicePolicyManager == null ||
+                adminComponent == null) {
             return;
         }
 
         try {
 
             /*
-             * Check whether our app is actually Device Owner.
-             *
-             * This prevents SecurityException from crashing the app
-             * on a normal/non-provisioned tablet.
+             * The app must be Device Owner.
              */
             if (!devicePolicyManager.isDeviceOwnerApp(
                     getPackageName()
@@ -149,12 +123,8 @@ public class MainActivity extends Activity {
             }
 
             /*
-             * Allow both:
-             *
-             * 1. This kiosk application
-             * 2. Infinity Learn
-             *
-             * to run while Lock Task mode is active.
+             * Allow our kiosk app and Infinity Learn to operate
+             * while Lock Task mode is active.
              */
             List<String> packages =
                     new ArrayList<>();
@@ -168,8 +138,7 @@ public class MainActivity extends Activity {
             );
 
             /*
-             * Start Lock Task only after the package allowlist
-             * has successfully been configured.
+             * Enter Lock Task only after the allowlist is configured.
              */
             if (Build.VERSION.SDK_INT >=
                     Build.VERSION_CODES.LOLLIPOP) {
@@ -185,19 +154,18 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_LONG
             ).show();
 
-        } catch (Exception e) {
-
+        } catch (Exception ignored) {
             /*
-             * Never let kiosk configuration crash the application.
+             * Never crash the application because kiosk
+             * configuration failed.
              */
         }
     }
 
     /**
-     * Exit Android Lock Task mode.
+     * Exit Lock Task mode and restore normal Android UI.
      *
-     * The Device Owner remains installed. This only stops the
-     * current Lock Task session, allowing normal tablet use.
+     * Device Owner is NOT removed here.
      */
     private void exitKiosk() {
 
@@ -214,6 +182,39 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {
         }
 
+        /*
+         * Restore Android status/navigation bars.
+         */
+        try {
+
+            if (Build.VERSION.SDK_INT >=
+                    Build.VERSION_CODES.R) {
+
+                Window window = getWindow();
+
+                WindowInsetsController controller =
+                        window.getInsetsController();
+
+                if (controller != null) {
+
+                    controller.show(
+                            WindowInsets.Type.statusBars()
+                                    | WindowInsets.Type.navigationBars()
+                    );
+                }
+
+            } else {
+
+                getWindow()
+                        .getDecorView()
+                        .setSystemUiVisibility(
+                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        );
+            }
+
+        } catch (Exception ignored) {
+        }
+
         Toast.makeText(
                 this,
                 "Kiosk mode exited",
@@ -222,7 +223,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Hide system bars while the kiosk screen is displayed.
+     * Hide Android system bars while kiosk mode is active.
      */
     private void hideSystemBars() {
 
@@ -241,7 +242,6 @@ public class MainActivity extends Activity {
                     controller.hide(
                             WindowInsets.Type.statusBars()
                                     | WindowInsets.Type.navigationBars()
-                                    | WindowInsets.Type.systemBars()
                     );
 
                     controller.setSystemBarsBehavior(
@@ -269,15 +269,15 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Prevent Back from leaving the kiosk screen.
+     * Consume Back while the kiosk is active.
      */
     @Override
     public void onBackPressed() {
+
         /*
-         * Intentionally empty.
+         * Do nothing while the kiosk screen is active.
          *
-         * Back is consumed while this activity is being used
-         * as the kiosk launcher.
+         * Exit Kiosk is provided through the information menu.
          */
     }
 
@@ -298,11 +298,13 @@ public class MainActivity extends Activity {
             int color
     ) {
 
-        TextView t = new TextView(this);
+        TextView t =
+                new TextView(this);
 
         t.setText(text);
         t.setTextSize(size);
         t.setTextColor(color);
+
         t.setGravity(
                 Gravity.CENTER_VERTICAL
         );
@@ -319,6 +321,7 @@ public class MainActivity extends Activity {
                 new GradientDrawable();
 
         g.setColor(color);
+
         g.setCornerRadius(
                 dp(radius)
         );
@@ -327,7 +330,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Kiosk information menu.
+     * Show kiosk information menu.
      */
     private void showKioskMenu() {
 
@@ -337,7 +340,8 @@ public class MainActivity extends Activity {
             return;
         }
 
-        kioskDialog = new Dialog(this);
+        kioskDialog =
+                new Dialog(this);
 
         LinearLayout box =
                 new LinearLayout(this);
@@ -652,44 +656,26 @@ public class MainActivity extends Activity {
                 .show();
     }
 
+    /**
+     * Settings are intentionally not opened while Lock Task
+     * is active. The user should exit kiosk first.
+     */
     private void openSettings() {
 
-        try {
-
-            /*
-             * Settings may be restricted by Android while
-             * full Lock Task is active.
-             *
-             * The important exit path remains available
-             * through Exit Kiosk.
-             */
-            Intent intent =
-                    new Intent(
-                            Settings.ACTION_SETTINGS
-                    );
-
-            startActivity(intent);
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Settings unavailable while kiosk is active",
-                    Toast.LENGTH_SHORT
-            ).show();
-        }
+        Toast.makeText(
+                this,
+                "Exit Kiosk first to use Android Settings",
+                Toast.LENGTH_LONG
+        ).show();
     }
 
     /**
-     * Launch the actual Infinity Learn application.
+     * Launch the real Infinity Learn application.
      */
     private void openInfinityMeta() {
 
         try {
 
-            /*
-             * First make sure the package is installed.
-             */
             android.content.pm.PackageManager pm =
                     getPackageManager();
 
@@ -709,11 +695,6 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            /*
-             * These flags make the existing Infinity Learn
-             * task come to the front instead of unnecessarily
-             * creating duplicate activities.
-             */
             launchIntent.addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK
                             | Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -743,7 +724,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * The main kiosk wallpaper screen.
+     * Main kiosk wallpaper view.
      */
     private class HomeView extends View {
 
@@ -759,12 +740,9 @@ public class MainActivity extends Activity {
             super(context);
 
             /*
-             * Load the exact wallpaper from:
+             * Put the exact JPG wallpaper here:
              *
-             * res/drawable/infinity_wallpaper.jpg
-             *
-             * The fallback prevents a crash if the file is
-             * temporarily missing.
+             * app/src/main/res/drawable/infinity_wallpaper.jpg
              */
             wallpaper =
                     BitmapFactory.decodeResource(
@@ -778,7 +756,7 @@ public class MainActivity extends Activity {
 
         @Override
         protected void onDraw(
-                android.graphics.Canvas canvas
+                Canvas canvas
         ) {
 
             super.onDraw(canvas);
@@ -801,7 +779,7 @@ public class MainActivity extends Activity {
             } else {
 
                 /*
-                 * Safe fallback instead of crashing.
+                 * Safe fallback if the wallpaper is missing.
                  */
                 canvas.drawColor(
                         Color.rgb(
@@ -832,10 +810,7 @@ public class MainActivity extends Activity {
                         event.getY();
 
                 /*
-                 * Bottom-left "i" button.
-                 *
-                 * This corresponds to the i button in
-                 * the supplied wallpaper.
+                 * Bottom-left information button.
                  */
                 if (
                         x <
@@ -853,10 +828,7 @@ public class MainActivity extends Activity {
                 }
 
                 /*
-                 * Infinity Meta / Infinity Learn logo.
-                 *
-                 * This corresponds to the logo positioned
-                 * near the upper-left portion of the wallpaper.
+                 * Infinity Learn logo area.
                  */
                 if (
                         x <
