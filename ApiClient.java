@@ -19,7 +19,7 @@ public class ApiClient {
      * CHANGE THIS LATER
      */
     private static final String SERVER_URL =
-            "https://YOUR-SERVER-DOMAIN/api";
+            "https://infinitymetaserver.onrender.com/";
 
     private final Handler mainHandler =
             new Handler(Looper.getMainLooper());
