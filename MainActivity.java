@@ -17,6 +17,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -24,6 +25,7 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,21 +35,17 @@ import java.util.List;
 
 public class MainActivity extends Activity {
 
-    /*
-     * Package name of the Infinity Learn application.
-     */
     private static final String INFINITY_META_PACKAGE =
             "apps.infinitylearn.lms";
+
+    // Exit Kiosk PIN
+    private static final String EXIT_KIOSK_PIN = "0331";
 
     private DevicePolicyManager devicePolicyManager;
     private ComponentName adminComponent;
 
     private Dialog kioskDialog;
 
-    /*
-     * Once Exit Kiosk is pressed, this prevents onResume()
-     * from hiding the system bars or restarting kiosk behavior.
-     */
     private boolean kioskExitRequested = false;
 
     @Override
@@ -81,47 +79,24 @@ public class MainActivity extends Activity {
 
         setContentView(new HomeView(this));
 
-        /*
-         * Configure Lock Task only when this application
-         * is actually Device Owner.
-         */
         configureAndEnterKiosk();
 
-        /*
-         * Start the remote management service.
-         *
-         * The service registers this tablet with the
-         * management server and checks for commands.
-         */
         startManagementService();
     }
 
-    /**
-     * Start remote management service.
-     */
     private void startManagementService() {
-
         try {
-
             Intent managementIntent =
                     new Intent(
                             this,
                             ManagementService.class
                     );
 
-            /*
-             * For the first implementation we use
-             * a normal service.
-             */
             startService(
                     managementIntent
             );
 
         } catch (Exception ignored) {
-            /*
-             * Management failure must never crash
-             * the kiosk application.
-             */
         }
     }
 
@@ -129,18 +104,11 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        /*
-         * Do not restore kiosk UI after the user has
-         * deliberately exited kiosk mode.
-         */
         if (!kioskExitRequested) {
             hideSystemBars();
         }
     }
 
-    /**
-     * Configure Lock Task and enter kiosk mode.
-     */
     private void configureAndEnterKiosk() {
 
         if (devicePolicyManager == null ||
@@ -150,19 +118,12 @@ public class MainActivity extends Activity {
 
         try {
 
-            /*
-             * The application must be Device Owner.
-             */
             if (!devicePolicyManager.isDeviceOwnerApp(
                     getPackageName()
             )) {
                 return;
             }
 
-            /*
-             * Allow our kiosk application and Infinity Learn
-             * to operate while Lock Task is active.
-             */
             List<String> packages =
                     new ArrayList<>();
 
@@ -174,9 +135,6 @@ public class MainActivity extends Activity {
                     packages.toArray(new String[0])
             );
 
-            /*
-             * Enter Lock Task after the allowlist is configured.
-             */
             if (Build.VERSION.SDK_INT >=
                     Build.VERSION_CODES.LOLLIPOP) {
 
@@ -192,23 +150,11 @@ public class MainActivity extends Activity {
             ).show();
 
         } catch (Exception ignored) {
-            /*
-             * Never crash if kiosk configuration fails.
-             */
         }
     }
 
-    /**
-     * Exit Lock Task mode and return the tablet to normal use.
-     *
-     * Device Owner is NOT removed.
-     */
     private void exitKiosk() {
 
-        /*
-         * Tell onResume() not to put the app back into
-         * kiosk presentation mode.
-         */
         kioskExitRequested = true;
 
         try {
@@ -222,9 +168,6 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {
         }
 
-        /*
-         * Restore normal Android system bars.
-         */
         try {
 
             if (Build.VERSION.SDK_INT >=
@@ -239,7 +182,8 @@ public class MainActivity extends Activity {
 
                     controller.show(
                             WindowInsets.Type.statusBars()
-                                    | WindowInsets.Type.navigationBars()
+                                    |
+                            WindowInsets.Type.navigationBars()
                     );
                 }
 
@@ -261,10 +205,6 @@ public class MainActivity extends Activity {
                 Toast.LENGTH_SHORT
         ).show();
 
-        /*
-         * Remove this kiosk activity from the recent-task stack
-         * and return control to the normal Android launcher.
-         */
         try {
 
             if (Build.VERSION.SDK_INT >=
@@ -283,9 +223,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /**
-     * Hide Android system bars while kiosk mode is active.
-     */
     private void hideSystemBars() {
 
         try {
@@ -302,7 +239,8 @@ public class MainActivity extends Activity {
 
                     controller.hide(
                             WindowInsets.Type.statusBars()
-                                    | WindowInsets.Type.navigationBars()
+                                    |
+                            WindowInsets.Type.navigationBars()
                     );
 
                     controller.setSystemBarsBehavior(
@@ -317,11 +255,16 @@ public class MainActivity extends Activity {
                         .getDecorView()
                         .setSystemUiVisibility(
                                 View.SYSTEM_UI_FLAG_FULLSCREEN
-                                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                        |
+                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                        |
+                                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                                        |
+                                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                        |
+                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                        |
+                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         );
             }
 
@@ -329,16 +272,9 @@ public class MainActivity extends Activity {
         }
     }
 
-    /**
-     * Consume Back while this kiosk activity is active.
-     *
-     * The user can use the Exit Kiosk option instead.
-     */
     @Override
     public void onBackPressed() {
-        /*
-         * Intentionally empty.
-         */
+        // Back button intentionally disabled in kiosk mode.
     }
 
     private int dp(float n) {
@@ -364,7 +300,6 @@ public class MainActivity extends Activity {
         t.setText(text);
         t.setTextSize(size);
         t.setTextColor(color);
-
         t.setGravity(
                 Gravity.CENTER_VERTICAL
         );
@@ -381,7 +316,6 @@ public class MainActivity extends Activity {
                 new GradientDrawable();
 
         g.setColor(color);
-
         g.setCornerRadius(
                 dp(radius)
         );
@@ -389,9 +323,6 @@ public class MainActivity extends Activity {
         return g;
     }
 
-    /**
-     * Show the kiosk information menu.
-     */
     private void showKioskMenu() {
 
         if (kioskDialog != null &&
@@ -549,16 +480,14 @@ public class MainActivity extends Activity {
                 Typeface.BOLD
         );
 
-        done.setOnClickListener(
-                v -> {
+        done.setOnClickListener(v -> {
 
-                    if (kioskDialog != null &&
-                            kioskDialog.isShowing()) {
+            if (kioskDialog != null &&
+                    kioskDialog.isShowing()) {
 
-                        kioskDialog.dismiss();
-                    }
-                }
-        );
+                kioskDialog.dismiss();
+            }
+        });
 
         box.addView(
                 done,
@@ -695,31 +624,124 @@ public class MainActivity extends Activity {
         box.addView(row);
     }
 
+    /*
+     * Exit Kiosk PIN
+     *
+     * PIN = 0331
+     */
     private void confirmExit() {
 
-        new AlertDialog.Builder(this)
-                .setTitle(
-                        "Exit Kiosk"
+        final EditText pinInput =
+                new EditText(this);
+
+        pinInput.setHint(
+                "Enter Exit Kiosk PIN"
+        );
+
+        pinInput.setInputType(
+                InputType.TYPE_CLASS_NUMBER
+                        |
+                InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        );
+
+        pinInput.setSingleLine(true);
+
+        int padding = dp(20);
+
+        pinInput.setPadding(
+                padding,
+                padding,
+                padding,
+                padding
+        );
+
+        LinearLayout container =
+                new LinearLayout(this);
+
+        container.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        container.setPadding(
+                dp(10),
+                dp(5),
+                dp(10),
+                dp(5)
+        );
+
+        container.addView(
+                pinInput,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(60)
                 )
-                .setMessage(
-                        "Are you sure you want to exit kiosk mode?"
-                )
-                .setNegativeButton(
-                        "Cancel",
-                        null
-                )
-                .setPositiveButton(
-                        "Exit",
-                        (dialog, which) ->
-                                exitKiosk()
-                )
-                .show();
+        );
+
+        AlertDialog dialog =
+                new AlertDialog.Builder(this)
+                        .setTitle(
+                                "Exit Kiosk"
+                        )
+                        .setMessage(
+                                "Enter the Exit Kiosk PIN to continue."
+                        )
+                        .setView(
+                                container
+                        )
+                        .setNegativeButton(
+                                "Cancel",
+                                null
+                        )
+                        .setPositiveButton(
+                                "Exit",
+                                null
+                        )
+                        .create();
+
+        dialog.setOnShowListener(
+                d -> {
+
+                    dialog.getButton(
+                            AlertDialog.BUTTON_POSITIVE
+                    ).setOnClickListener(
+                            v -> {
+
+                                String enteredPin =
+                                        pinInput
+                                                .getText()
+                                                .toString()
+                                                .trim();
+
+                                if (EXIT_KIOSK_PIN.equals(
+                                        enteredPin
+                                )) {
+
+                                    dialog.dismiss();
+
+                                    if (kioskDialog != null &&
+                                            kioskDialog.isShowing()) {
+
+                                        kioskDialog.dismiss();
+                                    }
+
+                                    exitKiosk();
+
+                                } else {
+
+                                    pinInput.setError(
+                                            "Incorrect PIN"
+                                    );
+
+                                    pinInput.requestFocus();
+                                }
+                            }
+                    );
+                }
+        );
+
+        dialog.show();
     }
 
-    /**
-     * Settings are not launched while Lock Task is active.
-     * Exit Kiosk first, then the tablet can be used normally.
-     */
     private void openSettings() {
 
         Toast.makeText(
@@ -729,9 +751,6 @@ public class MainActivity extends Activity {
         ).show();
     }
 
-    /**
-     * Launch the actual Infinity Learn application.
-     */
     private void openInfinityMeta() {
 
         try {
@@ -757,8 +776,10 @@ public class MainActivity extends Activity {
 
             launchIntent.addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK
-                            | Intent.FLAG_ACTIVITY_CLEAR_TOP
-                            | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            |
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            |
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
             );
 
             startActivity(
@@ -783,10 +804,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    /**
-     * Main kiosk wallpaper view.
-     */
-    private class HomeView extends View {
+    private class HomeView
+            extends View {
 
         private Bitmap wallpaper;
 
@@ -795,15 +814,12 @@ public class MainActivity extends Activity {
                         Paint.FILTER_BITMAP_FLAG
                 );
 
-        HomeView(Context context) {
+        HomeView(
+                Context context
+        ) {
 
             super(context);
 
-            /*
-             * Expected file:
-             *
-             * app/src/main/res/drawable/infinity_wallpaper.jpg
-             */
             wallpaper =
                     BitmapFactory.decodeResource(
                             getResources(),
@@ -838,9 +854,6 @@ public class MainActivity extends Activity {
 
             } else {
 
-                /*
-                 * Safe fallback if wallpaper cannot be loaded.
-                 */
                 canvas.drawColor(
                         Color.rgb(
                                 210,
@@ -869,17 +882,12 @@ public class MainActivity extends Activity {
                 float y =
                         event.getY();
 
-                /*
-                 * Bottom-left information button.
-                 */
+                // Bottom-left "i" logo
+                // opens Kiosk menu
                 if (
-                        x <
-                                getWidth()
-                                        * 0.13f
+                        x < getWidth() * 0.13f
                                 &&
-                        y >
-                                getHeight()
-                                        * 0.88f
+                        y > getHeight() * 0.88f
                 ) {
 
                     showKioskMenu();
@@ -887,17 +895,11 @@ public class MainActivity extends Activity {
                     return true;
                 }
 
-                /*
-                 * Infinity Learn logo area.
-                 */
+                // Infinity Meta shortcut
                 if (
-                        x <
-                                getWidth()
-                                        * 0.32f
+                        x < getWidth() * 0.32f
                                 &&
-                        y <
-                                getHeight()
-                                        * 0.30f
+                        y < getHeight() * 0.30f
                 ) {
 
                     openInfinityMeta();
@@ -909,4 +911,4 @@ public class MainActivity extends Activity {
             return true;
         }
     }
-                }
+}
