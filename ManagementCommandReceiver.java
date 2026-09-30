@@ -84,6 +84,29 @@ public class ManagementCommandReceiver
 
                 break;
 
+            case "CLEAR_APP_DATA":
+
+                Intent clearData =
+                        new Intent(
+                                context,
+                                MainActivity.class
+                        );
+
+                clearData.putExtra(
+                        "management_action",
+                        "com.infinitymeta.kiosk.CLEAR_APP_DATA"
+                );
+
+                clearData.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+                );
+
+                context.startActivity(clearData);
+
+                break;
+
             case "EXIT_KIOSK":
 
                 Intent exit =
