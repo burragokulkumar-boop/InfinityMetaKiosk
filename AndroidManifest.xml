@@ -2,15 +2,22 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Internet / remote management -->
     <uses-permission
         android:name="android.permission.INTERNET" />
 
     <uses-permission
         android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Start kiosk after normal tablet reboot -->
+    <uses-permission
+        android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <queries>
+
         <package
             android:name="apps.infinitylearn.lms" />
+
     </queries>
 
     <application
@@ -20,6 +27,7 @@
         android:allowBackup="false"
         android:supportsRtl="true">
 
+        <!-- Main Kiosk / Home activity -->
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait"
@@ -29,12 +37,14 @@
 
             <intent-filter>
 
+                <!-- Normal launcher -->
                 <action
                     android:name="android.intent.action.MAIN" />
 
                 <category
                     android:name="android.intent.category.LAUNCHER" />
 
+                <!-- Make this app a Home activity -->
                 <category
                     android:name="android.intent.category.HOME" />
 
@@ -45,6 +55,8 @@
 
         </activity>
 
+
+        <!-- Device Owner / Kiosk administrator -->
         <receiver
             android:name=".KioskDeviceAdminReceiver"
             android:permission="android.permission.BIND_DEVICE_ADMIN"
@@ -57,16 +69,41 @@
                 android:resource="@xml/device_admin_receiver" />
 
             <intent-filter>
+
                 <action
                     android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+
             </intent-filter>
 
         </receiver>
 
+
+        <!-- Starts kiosk after normal reboot -->
+        <receiver
+            android:name=".KioskBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+
+            <intent-filter>
+
+                <action
+                    android:name="android.intent.action.BOOT_COMPLETED" />
+
+                <action
+                    android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+
+            </intent-filter>
+
+        </receiver>
+
+
+        <!-- Remote management command receiver -->
         <receiver
             android:name=".ManagementCommandReceiver"
             android:exported="false" />
 
+
+        <!-- Remote management service -->
         <service
             android:name=".ManagementService"
             android:exported="false" />
