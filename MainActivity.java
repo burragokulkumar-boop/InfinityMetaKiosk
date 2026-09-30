@@ -1070,7 +1070,7 @@ public class MainActivity extends Activity {
                     adminComponent,
                     INFINITY_META_PACKAGE,
                     getMainExecutor(),
-                    successful -> {
+                    (packageName, successful) -> {
 
                         if (successful) {
 
