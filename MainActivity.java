@@ -517,9 +517,9 @@ public class MainActivity extends Activity {
                         "Installed date\n260808",
                         16,
                         Color.rgb(
-                                75,
-                                75,
-                                75
+                                45,
+                                45,
+                                45
                         )
                 );
 
@@ -886,9 +886,9 @@ public class MainActivity extends Activity {
                         name + "\n" + value,
                         17,
                         Color.rgb(
-                                65,
-                                65,
-                                65
+                                35,
+                                35,
+                                35
                         )
                 );
 
@@ -906,9 +906,9 @@ public class MainActivity extends Activity {
                         "›",
                         28,
                         Color.rgb(
-                                100,
-                                100,
-                                100
+                                70,
+                                70,
+                                70
                         )
                 );
 
