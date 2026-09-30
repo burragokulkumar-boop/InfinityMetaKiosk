@@ -860,10 +860,21 @@ public class MainActivity extends Activity {
                             )
                     );
 
-            w.setLayout(
-                    width,
-                    WindowManager.LayoutParams.WRAP_CONTENT
-            );
+            WindowManager.LayoutParams params =
+                    w.getAttributes();
+
+            params.width = width;
+            params.height =
+                    WindowManager.LayoutParams.WRAP_CONTENT;
+
+            params.gravity =
+                    Gravity.BOTTOM |
+                    Gravity.CENTER_HORIZONTAL;
+
+            // Keep the Settings panel slightly above the bottom edge.
+            params.y = dp(70);
+
+            w.setAttributes(params);
         }
     }
 
