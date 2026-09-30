@@ -491,9 +491,9 @@ public class MainActivity extends Activity {
                         "Version\n1.0.5",
                         16,
                         Color.rgb(
-                                75,
-                                75,
-                                75
+                                45,
+                                45,
+                                45
                         )
                 );
 
@@ -613,9 +613,11 @@ public class MainActivity extends Activity {
                     WindowManager.LayoutParams.WRAP_CONTENT;
 
             params.gravity =
-                    Gravity.CENTER;
+                    Gravity.BOTTOM |
+                    Gravity.CENTER_HORIZONTAL;
 
-            params.y = dp(45);
+            // Keep the panel slightly above the bottom edge.
+            params.y = dp(70);
 
             w.setAttributes(params);
         }
@@ -663,9 +665,9 @@ public class MainActivity extends Activity {
                         text,
                         17,
                         Color.rgb(
-                                65,
-                                65,
-                                65
+                                35,
+                                35,
+                                35
                         )
                 );
 
@@ -674,9 +676,9 @@ public class MainActivity extends Activity {
                         "View",
                         17,
                         Color.rgb(
-                                80,
-                                105,
-                                190
+                                0,
+                                0,
+                                238
                         )
                 );
 
