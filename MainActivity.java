@@ -321,6 +321,19 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+
+        if (intent != null &&
+                "com.infinitymeta.kiosk.EXIT_KIOSK".equals(
+                        intent.getStringExtra("management_action")
+                )) {
+            exitKiosk();
+        }
+    }
+
+    @Override
     public void onBackPressed() {
         /*
          * Back remains blocked.
@@ -1374,5 +1387,4 @@ public class MainActivity extends Activity {
 
             return true;
         }
-    }
-                                }
+}
