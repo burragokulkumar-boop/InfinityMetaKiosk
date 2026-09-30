@@ -122,11 +122,20 @@ jobs:
                   versionName "1.0"
               }
 
+              signingConfigs {
+                  release {
+                      storeFile file("../infinitymeta-release.jks")
+                      storePassword System.getenv("INFINITYMETA_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("INFINITYMETA_KEY_ALIAS")
+                      keyPassword System.getenv("INFINITYMETA_KEY_PASSWORD")
+                  }
+              }
+
               buildTypes {
                   release {
                       minifyEnabled false
                       shrinkResources false
-                      signingConfig signingConfigs.debug
+                      signingConfig signingConfigs.release
                   }
               }
           }
@@ -137,10 +146,49 @@ jobs:
           android.useAndroidX=true
           EOF
 
-      - name: Build APK
-        working-directory: build_project
+      - name: Restore permanent release keystore
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.INFINITYMETA_KEYSTORE_BASE64 }}
         run: |
           set -e
+
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "ERROR: INFINITYMETA_KEYSTORE_BASE64 GitHub Secret is not configured."
+            exit 1
+          fi
+
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > build_project/infinitymeta-release.jks
+
+          if [ ! -s build_project/infinitymeta-release.jks ]; then
+            echo "ERROR: Release keystore is empty."
+            exit 1
+          fi
+
+      - name: Build APK
+        working-directory: build_project
+        env:
+          INFINITYMETA_KEYSTORE_PASSWORD: ${{ secrets.INFINITYMETA_KEYSTORE_PASSWORD }}
+          INFINITYMETA_KEY_ALIAS: ${{ secrets.INFINITYMETA_KEY_ALIAS }}
+          INFINITYMETA_KEY_PASSWORD: ${{ secrets.INFINITYMETA_KEY_PASSWORD }}
+        run: |
+          set -e
+
+          if [ -z "$INFINITYMETA_KEYSTORE_PASSWORD" ]; then
+            echo "ERROR: INFINITYMETA_KEYSTORE_PASSWORD GitHub Secret is not configured."
+            exit 1
+          fi
+
+          if [ -z "$INFINITYMETA_KEY_ALIAS" ]; then
+            echo "ERROR: INFINITYMETA_KEY_ALIAS GitHub Secret is not configured."
+            exit 1
+          fi
+
+          if [ -z "$INFINITYMETA_KEY_PASSWORD" ]; then
+            echo "ERROR: INFINITYMETA_KEY_PASSWORD GitHub Secret is not configured."
+            exit 1
+          fi
+
           gradle :app:assembleRelease --stacktrace
 
       - name: Check APK
