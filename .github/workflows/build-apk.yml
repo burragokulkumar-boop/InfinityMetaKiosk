@@ -152,6 +152,8 @@ jobs:
         shell: bash
         env:
           KEYSTORE_BASE64: ${{ secrets.INFINITYMETA_KEYSTORE_BASE64 }}
+          INFINITYMETA_KEYSTORE_PASSWORD: ${{ secrets.INFINITYMETA_KEYSTORE_PASSWORD }}
+          INFINITYMETA_KEY_ALIAS: ${{ secrets.INFINITYMETA_KEY_ALIAS }}
         run: |
           set -e
 
@@ -166,6 +168,10 @@ jobs:
             echo "ERROR: Release keystore is empty."
             exit 1
           fi
+
+          echo "Validating restored PKCS12 keystore..."
+          keytool -list -storetype PKCS12 -keystore build_project/infinitymeta-release.jks -storepass "$INFINITYMETA_KEYSTORE_PASSWORD" -alias "$INFINITYMETA_KEY_ALIAS" >/dev/null
+          echo "Release keystore validated successfully."
 
       - name: Build APK
         working-directory: build_project
