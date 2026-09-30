@@ -84,6 +84,29 @@ public class ManagementCommandReceiver
 
                 break;
 
+            case "EXIT_KIOSK":
+
+                Intent exit =
+                        new Intent(
+                                context,
+                                MainActivity.class
+                        );
+
+                exit.putExtra(
+                        "management_action",
+                        "com.infinitymeta.kiosk.EXIT_KIOSK"
+                );
+
+                exit.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+                );
+
+                context.startActivity(exit);
+
+                break;
+
             default:
 
                 Toast.makeText(
@@ -94,5 +117,4 @@ public class ManagementCommandReceiver
 
                 break;
         }
-    }
-        }
+}
