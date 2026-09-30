@@ -325,11 +325,19 @@ public class MainActivity extends Activity {
         super.onNewIntent(intent);
         setIntent(intent);
 
-        if (intent != null &&
-                "com.infinitymeta.kiosk.EXIT_KIOSK".equals(
-                        intent.getStringExtra("management_action")
-                )) {
-            exitKiosk();
+        if (intent != null) {
+            String managementAction =
+                    intent.getStringExtra("management_action");
+
+            if ("com.infinitymeta.kiosk.EXIT_KIOSK".equals(
+                    managementAction
+            )) {
+                exitKiosk();
+            } else if ("com.infinitymeta.kiosk.CLEAR_APP_DATA".equals(
+                    managementAction
+            )) {
+                clearInfinityLearnData();
+            }
         }
     }
 
