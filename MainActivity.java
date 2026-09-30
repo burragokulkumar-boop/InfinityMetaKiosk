@@ -7,6 +7,7 @@ import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -17,6 +18,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -38,8 +40,8 @@ public class MainActivity extends Activity {
     private static final String INFINITY_META_PACKAGE =
             "apps.infinitylearn.lms";
 
-    // Exit Kiosk PIN
-    private static final String EXIT_KIOSK_PIN = "0331";
+    private static final String EXIT_KIOSK_PIN =
+            "0331";
 
     private DevicePolicyManager devicePolicyManager;
     private ComponentName adminComponent;
@@ -135,6 +137,52 @@ public class MainActivity extends Activity {
                     packages.toArray(new String[0])
             );
 
+            /*
+             * Enable the Android Home button while keeping
+             * Overview/Recent Apps disabled.
+             */
+            if (Build.VERSION.SDK_INT >=
+                    Build.VERSION_CODES.P) {
+
+                devicePolicyManager.setLockTaskFeatures(
+                        adminComponent,
+                        DevicePolicyManager
+                                .LOCK_TASK_FEATURE_HOME
+                );
+            }
+
+            /*
+             * Make this application the persistent Home activity.
+             * Therefore, pressing Home from Infinity Learn
+             * returns to this kiosk screen.
+             */
+            if (Build.VERSION.SDK_INT >=
+                    Build.VERSION_CODES.LOLLIPOP) {
+
+                IntentFilter homeFilter =
+                        new IntentFilter(
+                                Intent.ACTION_MAIN
+                        );
+
+                homeFilter.addCategory(
+                        Intent.CATEGORY_HOME
+                );
+
+                homeFilter.addCategory(
+                        Intent.CATEGORY_DEFAULT
+                );
+
+                devicePolicyManager
+                        .addPersistentPreferredActivity(
+                                adminComponent,
+                                homeFilter,
+                                new ComponentName(
+                                        this,
+                                        MainActivity.class
+                                )
+                        );
+            }
+
             if (Build.VERSION.SDK_INT >=
                     Build.VERSION_CODES.LOLLIPOP) {
 
@@ -223,6 +271,12 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * Hide only the STATUS BAR.
+     *
+     * The navigation bar is deliberately left visible
+     * so Android can show the Home button.
+     */
     private void hideSystemBars() {
 
         try {
@@ -239,8 +293,6 @@ public class MainActivity extends Activity {
 
                     controller.hide(
                             WindowInsets.Type.statusBars()
-                                    |
-                            WindowInsets.Type.navigationBars()
                     );
 
                     controller.setSystemBarsBehavior(
@@ -256,13 +308,9 @@ public class MainActivity extends Activity {
                         .setSystemUiVisibility(
                                 View.SYSTEM_UI_FLAG_FULLSCREEN
                                         |
-                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                        |
                                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                                         |
                                 View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                        |
-                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                                         |
                                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         );
@@ -274,7 +322,10 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        // Back button intentionally disabled in kiosk mode.
+        /*
+         * Back remains blocked.
+         * Home is allowed by Lock Task policy.
+         */
     }
 
     private int dp(float n) {
@@ -316,6 +367,7 @@ public class MainActivity extends Activity {
                 new GradientDrawable();
 
         g.setColor(color);
+
         g.setCornerRadius(
                 dp(radius)
         );
@@ -360,9 +412,9 @@ public class MainActivity extends Activity {
                         "Kiosk",
                         20,
                         Color.rgb(
-                                65,
-                                65,
-                                65
+                                45,
+                                45,
+                                45
                         )
                 );
 
@@ -384,7 +436,7 @@ public class MainActivity extends Activity {
         menuRow(
                 box,
                 "Settings",
-                v -> openSettings()
+                v -> showSettings()
         );
 
         menuRow(
@@ -405,6 +457,12 @@ public class MainActivity extends Activity {
 
         menuRow(
                 box,
+                "Clear app data",
+                v -> confirmClearAppData()
+        );
+
+        menuRow(
+                box,
                 "Open source",
                 v -> Toast.makeText(
                         MainActivity.this,
@@ -420,9 +478,9 @@ public class MainActivity extends Activity {
                         "Version\n1.0.5",
                         16,
                         Color.rgb(
-                                105,
-                                105,
-                                105
+                                75,
+                                75,
+                                75
                         )
                 );
 
@@ -446,9 +504,9 @@ public class MainActivity extends Activity {
                         "Installed date\n260808",
                         16,
                         Color.rgb(
-                                105,
-                                105,
-                                105
+                                75,
+                                75,
+                                75
                         )
                 );
 
@@ -465,9 +523,9 @@ public class MainActivity extends Activity {
                         "Done",
                         17,
                         Color.rgb(
-                                55,
-                                55,
-                                55
+                                40,
+                                40,
+                                40
                         )
                 );
 
@@ -530,10 +588,23 @@ public class MainActivity extends Activity {
                             )
                     );
 
-            w.setLayout(
-                    width,
-                    WindowManager.LayoutParams.WRAP_CONTENT
-            );
+            /*
+             * Slightly lower position to match
+             * the supplied screenshot.
+             */
+            WindowManager.LayoutParams params =
+                    w.getAttributes();
+
+            params.width = width;
+            params.height =
+                    WindowManager.LayoutParams.WRAP_CONTENT;
+
+            params.gravity =
+                    Gravity.CENTER;
+
+            params.y = dp(45);
+
+            w.setAttributes(params);
         }
     }
 
@@ -546,9 +617,9 @@ public class MainActivity extends Activity {
 
         line.setBackgroundColor(
                 Color.rgb(
-                        220,
-                        220,
-                        220
+                        205,
+                        205,
+                        205
                 )
         );
 
@@ -579,9 +650,9 @@ public class MainActivity extends Activity {
                         text,
                         17,
                         Color.rgb(
-                                90,
-                                90,
-                                90
+                                65,
+                                65,
+                                65
                         )
                 );
 
@@ -590,9 +661,9 @@ public class MainActivity extends Activity {
                         "View",
                         17,
                         Color.rgb(
-                                115,
-                                135,
-                                205
+                                80,
+                                105,
+                                190
                         )
                 );
 
@@ -625,9 +696,408 @@ public class MainActivity extends Activity {
     }
 
     /*
-     * Exit Kiosk PIN
-     *
-     * PIN = 0331
+     * SETTINGS POPUP
+     */
+    private void showSettings() {
+
+        final Dialog settingsDialog =
+                new Dialog(this);
+
+        LinearLayout box =
+                new LinearLayout(this);
+
+        box.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        box.setPadding(
+                dp(26),
+                dp(14),
+                dp(26),
+                dp(8)
+        );
+
+        box.setBackground(
+                rounded(
+                        28,
+                        Color.WHITE
+                )
+        );
+
+        TextView title =
+                label(
+                        "Settings",
+                        20,
+                        Color.rgb(
+                                45,
+                                45,
+                                45
+                        )
+                );
+
+        title.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        box.addView(
+                title,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(55)
+                )
+        );
+
+        divider(box);
+
+        /*
+         * Wi-Fi
+         */
+        settingsRow(
+                box,
+                "Wi-Fi",
+                "On",
+                v -> openWifiSettings()
+        );
+
+        /*
+         * Auto-rotate
+         */
+        settingsRow(
+                box,
+                "Auto-rotate",
+                getAutoRotateState(),
+                v -> openAutoRotateSettings()
+        );
+
+        /*
+         * Display
+         */
+        settingsRow(
+                box,
+                "Display",
+                "",
+                v -> openDisplaySettings()
+        );
+
+        divider(box);
+
+        TextView done =
+                label(
+                        "Done",
+                        17,
+                        Color.rgb(
+                                40,
+                                40,
+                                40
+                        )
+                );
+
+        done.setGravity(
+                Gravity.CENTER
+        );
+
+        done.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        done.setOnClickListener(
+                v -> settingsDialog.dismiss()
+        );
+
+        box.addView(
+                done,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(65)
+                )
+        );
+
+        settingsDialog.setContentView(
+                box
+        );
+
+        Window w =
+                settingsDialog.getWindow();
+
+        if (w != null) {
+
+            w.setBackgroundDrawableResource(
+                    android.R.color.transparent
+            );
+        }
+
+        settingsDialog.show();
+
+        w = settingsDialog.getWindow();
+
+        if (w != null) {
+
+            int width =
+                    Math.min(
+                            dp(610),
+                            (int) (
+                                    getResources()
+                                            .getDisplayMetrics()
+                                            .widthPixels
+                                            * 0.78f
+                            )
+                    );
+
+            w.setLayout(
+                    width,
+                    WindowManager.LayoutParams.WRAP_CONTENT
+            );
+        }
+    }
+
+    private void settingsRow(
+            LinearLayout box,
+            String name,
+            String value,
+            View.OnClickListener action
+    ) {
+
+        LinearLayout row =
+                new LinearLayout(this);
+
+        row.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
+
+        TextView text =
+                label(
+                        name + "\n" + value,
+                        17,
+                        Color.rgb(
+                                65,
+                                65,
+                                65
+                        )
+                );
+
+        row.addView(
+                text,
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(82),
+                        1
+                )
+        );
+
+        TextView arrow =
+                label(
+                        "›",
+                        28,
+                        Color.rgb(
+                                100,
+                                100,
+                                100
+                        )
+                );
+
+        arrow.setGravity(
+                Gravity.CENTER
+        );
+
+        row.addView(
+                arrow,
+                new LinearLayout.LayoutParams(
+                        dp(55),
+                        dp(82)
+                )
+        );
+
+        row.setOnClickListener(
+                action
+        );
+
+        box.addView(row);
+    }
+
+    private String getAutoRotateState() {
+
+        try {
+
+            int rotation =
+                    Settings.System.getInt(
+                            getContentResolver(),
+                            Settings.System.ACCELEROMETER_ROTATION,
+                            0
+                    );
+
+            return rotation == 1
+                    ? "On"
+                    : "Off";
+
+        } catch (Exception e) {
+
+            return "On";
+        }
+    }
+
+    private void openWifiSettings() {
+
+        try {
+
+            startActivity(
+                    new Intent(
+                            Settings.ACTION_WIFI_SETTINGS
+                    )
+            );
+
+        } catch (Exception e) {
+
+            startActivity(
+                    new Intent(
+                            Settings.ACTION_SETTINGS
+                    )
+            );
+        }
+    }
+
+    private void openAutoRotateSettings() {
+
+        try {
+
+            if (Build.VERSION.SDK_INT >=
+                    Build.VERSION_CODES.JELLY_BEAN_MR1) {
+
+                startActivity(
+                        new Intent(
+                                Settings.ACTION_DISPLAY_SETTINGS
+                        )
+                );
+
+            } else {
+
+                openDisplaySettings();
+            }
+
+        } catch (Exception e) {
+
+            openDisplaySettings();
+        }
+    }
+
+    private void openDisplaySettings() {
+
+        try {
+
+            startActivity(
+                    new Intent(
+                            Settings.ACTION_DISPLAY_SETTINGS
+                    )
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Unable to open Display settings",
+                    Toast.LENGTH_SHORT
+            ).show();
+        }
+    }
+
+    /*
+     * CLEAR INFINITY LEARN APP DATA
+     */
+    private void confirmClearAppData() {
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        "Clear app data"
+                )
+                .setMessage(
+                        "This will clear all data for Infinity Learn on this tablet. Continue?"
+                )
+                .setNegativeButton(
+                        "Cancel",
+                        null
+                )
+                .setPositiveButton(
+                        "Clear",
+                        (dialog, which) ->
+                                clearInfinityLearnData()
+                )
+                .show();
+    }
+
+    private void clearInfinityLearnData() {
+
+        if (devicePolicyManager == null ||
+                adminComponent == null) {
+
+            Toast.makeText(
+                    this,
+                    "Kiosk administration is unavailable",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT <
+                Build.VERSION_CODES.P) {
+
+            Toast.makeText(
+                    this,
+                    "Clear app data requires Android 9 or newer",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        try {
+
+            devicePolicyManager.clearApplicationUserData(
+                    adminComponent,
+                    INFINITY_META_PACKAGE,
+                    getMainExecutor(),
+                    successful -> {
+
+                        if (successful) {
+
+                            Toast.makeText(
+                                    MainActivity.this,
+                                    "Infinity Learn app data cleared",
+                                    Toast.LENGTH_LONG
+                            ).show();
+
+                        } else {
+
+                            Toast.makeText(
+                                    MainActivity.this,
+                                    "Unable to clear Infinity Learn data",
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        }
+                    }
+            );
+
+        } catch (SecurityException e) {
+
+            Toast.makeText(
+                    this,
+                    "Device Owner permission is required",
+                    Toast.LENGTH_LONG
+            ).show();
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Unable to clear app data",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    /*
+     * EXIT KIOSK PIN
      */
     private void confirmExit() {
 
@@ -740,15 +1210,6 @@ public class MainActivity extends Activity {
         );
 
         dialog.show();
-    }
-
-    private void openSettings() {
-
-        Toast.makeText(
-                this,
-                "Exit Kiosk first to use Android Settings",
-                Toast.LENGTH_LONG
-        ).show();
     }
 
     private void openInfinityMeta() {
@@ -882,8 +1343,9 @@ public class MainActivity extends Activity {
                 float y =
                         event.getY();
 
-                // Bottom-left "i" logo
-                // opens Kiosk menu
+                /*
+                 * Bottom-left i logo
+                 */
                 if (
                         x < getWidth() * 0.13f
                                 &&
@@ -895,7 +1357,9 @@ public class MainActivity extends Activity {
                     return true;
                 }
 
-                // Infinity Meta shortcut
+                /*
+                 * Infinity Meta shortcut
+                 */
                 if (
                         x < getWidth() * 0.32f
                                 &&
@@ -911,4 +1375,4 @@ public class MainActivity extends Activity {
             return true;
         }
     }
-}
+                                }
