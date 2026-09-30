@@ -2,14 +2,12 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Internet access for remote management -->
     <uses-permission
         android:name="android.permission.INTERNET" />
 
     <uses-permission
         android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- Allow Infinity Meta to detect and launch Infinity Learn -->
     <queries>
         <package
             android:name="apps.infinitylearn.lms" />
@@ -22,7 +20,6 @@
         android:allowBackup="false"
         android:supportsRtl="true">
 
-        <!-- Main kiosk activity -->
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait"
@@ -38,11 +35,16 @@
                 <category
                     android:name="android.intent.category.LAUNCHER" />
 
+                <category
+                    android:name="android.intent.category.HOME" />
+
+                <category
+                    android:name="android.intent.category.DEFAULT" />
+
             </intent-filter>
 
         </activity>
 
-        <!-- Device Administrator / Device Owner receiver -->
         <receiver
             android:name=".KioskDeviceAdminReceiver"
             android:permission="android.permission.BIND_DEVICE_ADMIN"
@@ -55,20 +57,16 @@
                 android:resource="@xml/device_admin_receiver" />
 
             <intent-filter>
-
                 <action
                     android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
-
             </intent-filter>
 
         </receiver>
 
-        <!-- Remote management command receiver -->
         <receiver
             android:name=".ManagementCommandReceiver"
             android:exported="false" />
 
-        <!-- Remote management service -->
         <service
             android:name=".ManagementService"
             android:exported="false" />
