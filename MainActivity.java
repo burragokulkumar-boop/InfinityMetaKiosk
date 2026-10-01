@@ -337,10 +337,6 @@ public class MainActivity extends Activity {
                     managementAction
             )) {
                 clearInfinityLearnData();
-            } else if ("com.infinitymeta.kiosk.REMOVE_KIOSK_APP".equals(
-                    managementAction
-            )) {
-                removeKioskApp();
             } else if ("com.infinitymeta.kiosk.UPDATE_APP".equals(
                     managementAction
             )) {
