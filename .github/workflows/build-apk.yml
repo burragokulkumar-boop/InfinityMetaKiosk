@@ -31,6 +31,7 @@ jobs:
           mkdir -p build_project/app/src/main/res/values
           mkdir -p build_project/app/src/main/res/xml
           mkdir -p build_project/app/src/main/res/drawable
+          mkdir -p build_project/app/src/recovery
 
           PACKAGE=$(grep -m1 '^package ' MainActivity.java | sed 's/package //;s/;//')
 
@@ -68,6 +69,11 @@ jobs:
           if [ -f infinity_wallpaper.jpg ]; then
             cp infinity_wallpaper.jpg \
               build_project/app/src/main/res/drawable/infinity_wallpaper.jpg
+          fi
+
+          if [ -f recovery/AndroidManifest.xml ]; then
+            cp recovery/AndroidManifest.xml \
+              build_project/app/src/recovery/AndroidManifest.xml
           fi
 
           if [ -f infinity_meta_icon.png ]; then
@@ -139,6 +145,11 @@ jobs:
                       shrinkResources false
                       signingConfig signingConfigs.release
                   }
+
+                  recovery {
+                      initWith release
+                      signingConfig signingConfigs.release
+                  }
               }
           }
           EOF
@@ -192,7 +203,7 @@ jobs:
             exit 1
           fi
 
-          gradle :app:assembleRelease --stacktrace
+          gradle :app:assembleRelease :app:assembleRecovery --stacktrace
 
       - name: Check APK
         run: |
