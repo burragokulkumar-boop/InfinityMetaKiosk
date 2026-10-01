@@ -13,6 +13,10 @@
     <uses-permission
         android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- Allows the kiosk's managed PackageInstaller flow to handle APK updates. -->
+    <uses-permission
+        android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <queries>
 
         <package
@@ -102,6 +106,11 @@
             android:name=".ManagementCommandReceiver"
             android:exported="false" />
 
+
+        <!-- APK update result receiver -->
+        <receiver
+            android:name=".UpdateInstallReceiver"
+            android:exported="false" />
 
         <!-- Remote management service -->
         <service
