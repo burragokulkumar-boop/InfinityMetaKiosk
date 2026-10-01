@@ -148,6 +148,22 @@ public class ManagementCommandReceiver
 
                 break;
 
+            case "SET_DEVICE_NAME":
+
+                String deviceNameJson = intent.getStringExtra(EXTRA_MESSAGE);
+                String deviceName = extractUpdateField(deviceNameJson, "deviceName");
+
+                if (!deviceName.isEmpty()) {
+                    new DeviceRegistration(context).setDeviceName(deviceName);
+                    Toast.makeText(
+                            context,
+                            "Device name set: " + deviceName,
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+
+                break;
+
             case "UPDATE_APP":
 
                 UpdateManager.start(
