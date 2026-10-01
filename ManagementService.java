@@ -70,6 +70,11 @@ public class ManagementService extends Service {
             );
 
             data.put(
+                    "deviceName",
+                    registration.getDeviceName()
+            );
+
+            data.put(
                     "model",
                     registration.getModel()
             );
