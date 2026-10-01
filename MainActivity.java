@@ -337,6 +337,34 @@ public class MainActivity extends Activity {
                     managementAction
             )) {
                 clearInfinityLearnData();
+            } else if ("com.infinitymeta.kiosk.REMOVE_KIOSK_APP".equals(
+                    managementAction
+            )) {
+                removeKioskApp();
+            } else if ("com.infinitymeta.kiosk.UPDATE_APP".equals(
+                    managementAction
+            )) {
+                String updateJson =
+                        intent.getStringExtra("update_json");
+                if (updateJson != null) {
+                    try {
+                        org.json.JSONObject update =
+                                new org.json.JSONObject(updateJson);
+                        UpdateManager.start(
+                                this,
+                                update.optString("apkUrl", ""),
+                                update.optInt("versionCode", -1),
+                                update.optString("versionName", ""),
+                                update.optString("sha256", "")
+                        );
+                    } catch (Exception e) {
+                        Toast.makeText(
+                                this,
+                                "Invalid update package information",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
             }
         }
     }
@@ -496,7 +524,7 @@ public class MainActivity extends Activity {
 
         TextView version =
                 label(
-                        "Version\n1.0.5",
+                        "Version\n1.0.6",
                         16,
                         Color.rgb(
                                 45,
