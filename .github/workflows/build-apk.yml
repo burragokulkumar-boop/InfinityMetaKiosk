@@ -2,6 +2,19 @@ name: Build InfinityMetaKiosk APK
 
 on:
   workflow_dispatch:
+    inputs:
+      version_name:
+        description: "App version name"
+        required: true
+        default: "1.0.6"
+      version_code:
+        description: "App version code"
+        required: true
+        default: "106"
+      release_notes:
+        description: "Release notes"
+        required: false
+        default: "Infinity Meta Kiosk update"
 
 jobs:
   build:
@@ -124,8 +137,8 @@ jobs:
                   applicationId '$PACKAGE'
                   minSdk 23
                   targetSdk 35
-                  versionCode 106
-                  versionName "1.0.6"
+                  versionCode ${{ inputs.version_code }}
+                  versionName "${{ inputs.version_name }}"
               }
 
               signingConfigs {
@@ -210,9 +223,38 @@ jobs:
           echo "=== APK files generated ==="
           find build_project/app/build/outputs -type f -name "*.apk" -print
 
-      - name: Upload APK
+      - name: Prepare release APK
+        shell: bash
+        env:
+          VERSION_NAME: ${{ inputs.version_name }}
+        run: |
+          set -e
+          mkdir -p release
+          APK=$(find build_project/app/build/outputs/apk/release -type f -name "*.apk" | head -n 1)
+          if [ -z "$APK" ]; then
+            echo "ERROR: Release APK was not generated."
+            exit 1
+          fi
+          cp "$APK" "release/InfinityMetaKiosk-${VERSION_NAME}.apk"
+          sha256sum "release/InfinityMetaKiosk-${VERSION_NAME}.apk" > "release/InfinityMetaKiosk-${VERSION_NAME}.sha256"
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: InfinityMetaKiosk-APK
-          path: build_project/app/build/outputs/apk/**/*.apk
+          path: |
+            release/*.apk
+            release/*.sha256
           if-no-files-found: error
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ inputs.version_name }}
+          name: InfinityMetaKiosk v${{ inputs.version_name }}
+          body: ${{ inputs.release_notes }}
+          files: |
+            release/InfinityMetaKiosk-${{ inputs.version_name }}.apk
+            release/InfinityMetaKiosk-${{ inputs.version_name }}.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
