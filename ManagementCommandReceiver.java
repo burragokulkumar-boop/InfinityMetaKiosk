@@ -17,6 +17,24 @@ public class ManagementCommandReceiver
     public static final String EXTRA_MESSAGE =
             "message";
 
+    private static String extractUpdateField(String json, String field) {
+        try {
+            org.json.JSONObject object = new org.json.JSONObject(json == null ? "{}" : json);
+            return object.optString(field, "");
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    private static int parseUpdateVersionCode(String json) {
+        try {
+            org.json.JSONObject object = new org.json.JSONObject(json == null ? "{}" : json);
+            return object.optInt("versionCode", -1);
+        } catch (Exception ignored) {
+            return -1;
+        }
+    }
+
     @Override
     public void onReceive(
             Context context,
@@ -150,6 +168,29 @@ public class ManagementCommandReceiver
                 );
 
                 context.startActivity(remove);
+
+                break;
+
+            case "UPDATE_APP":
+
+                UpdateManager.start(
+                        context,
+                        extractUpdateField(
+                                intent.getStringExtra(EXTRA_MESSAGE),
+                                "apkUrl"
+                        ),
+                        parseUpdateVersionCode(
+                                intent.getStringExtra(EXTRA_MESSAGE)
+                        ),
+                        extractUpdateField(
+                                intent.getStringExtra(EXTRA_MESSAGE),
+                                "versionName"
+                        ),
+                        extractUpdateField(
+                                intent.getStringExtra(EXTRA_MESSAGE),
+                                "sha256"
+                        )
+                );
 
                 break;
 
