@@ -14,6 +14,9 @@ public class DeviceRegistration {
     private static final String DEVICE_ID =
             "device_id";
 
+    private static final String DEVICE_NAME =
+            "device_name";
+
     private final Context context;
     private final SharedPreferences prefs;
 
@@ -43,6 +46,14 @@ public class DeviceRegistration {
         }
 
         return id;
+    }
+
+    public String getDeviceName() {
+        return prefs.getString(DEVICE_NAME, "");
+    }
+
+    public void setDeviceName(String name) {
+        prefs.edit().putString(DEVICE_NAME, name == null ? "" : name.trim()).apply();
     }
 
     public String getModel() {
