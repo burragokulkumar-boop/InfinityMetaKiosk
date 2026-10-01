@@ -148,29 +148,6 @@ public class ManagementCommandReceiver
 
                 break;
 
-            case "REMOVE_KIOSK_APP":
-
-                Intent remove =
-                        new Intent(
-                                context,
-                                MainActivity.class
-                        );
-
-                remove.putExtra(
-                        "management_action",
-                        "com.infinitymeta.kiosk.REMOVE_KIOSK_APP"
-                );
-
-                remove.addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK |
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP
-                );
-
-                context.startActivity(remove);
-
-                break;
-
             case "UPDATE_APP":
 
                 UpdateManager.start(
