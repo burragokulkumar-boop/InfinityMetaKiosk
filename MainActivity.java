@@ -207,6 +207,37 @@ public class MainActivity extends Activity {
 
         try {
 
+            /*
+             * We normally keep this app as the persistent Home activity
+             * while kiosk mode is active. Clear that preference BEFORE
+             * leaving kiosk mode; otherwise Android can immediately
+             * route Home back to this app and make Exit appear broken.
+             */
+            if (Build.VERSION.SDK_INT >=
+                    Build.VERSION_CODES.LOLLIPOP &&
+                    devicePolicyManager != null &&
+                    adminComponent != null) {
+
+                IntentFilter homeFilter =
+                        new IntentFilter(
+                                Intent.ACTION_MAIN
+                        );
+
+                homeFilter.addCategory(
+                        Intent.CATEGORY_HOME
+                );
+
+                homeFilter.addCategory(
+                        Intent.CATEGORY_DEFAULT
+                );
+
+                devicePolicyManager
+                        .clearPackagePersistentPreferredActivities(
+                                adminComponent,
+                                getPackageName()
+                        );
+            }
+
             if (Build.VERSION.SDK_INT >=
                     Build.VERSION_CODES.LOLLIPOP) {
 
