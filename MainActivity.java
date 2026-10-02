@@ -241,6 +241,18 @@ public class MainActivity extends Activity {
             if (Build.VERSION.SDK_INT >=
                     Build.VERSION_CODES.LOLLIPOP) {
 
+                /*
+                 * Temporarily remove the kiosk packages from the
+                 * Device Owner Lock Task allowlist. This prevents
+                 * the kiosk from immediately re-entering Lock Task
+                 * if Android recreates the activity while we exit.
+                 * Opening the app again will configure kiosk mode.
+                 */
+                devicePolicyManager.setLockTaskPackages(
+                        adminComponent,
+                        new String[0]
+                );
+
                 stopLockTask();
             }
 
