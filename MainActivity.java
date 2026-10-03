@@ -809,9 +809,14 @@ public class MainActivity extends Activity {
         if (w != null) {
 
             /*
-             * Kiosk UI sizing:
-             * 10% narrower than the current width, symmetrically
-             * from both sides, and 5% taller vertically.
+             * Kiosk UI sizing.
+             *
+             * Use visual scaling for the actual panel because Dialog
+             * WRAP_CONTENT can recalculate its window bounds after
+             * setAttributes() on Samsung/Android.
+             *
+             * 90% width = 5% inward from each side.
+             * 105% height = 5% longer vertically.
              */
             int width =
                     Math.min(
@@ -821,7 +826,6 @@ public class MainActivity extends Activity {
                                             .getDisplayMetrics()
                                             .widthPixels
                                             * 0.78f
-                                            * 0.90f
                             )
                     );
 
@@ -836,37 +840,17 @@ public class MainActivity extends Activity {
                     Gravity.BOTTOM |
                     Gravity.CENTER_HORIZONTAL;
 
-            // Keep the panel slightly above the bottom edge.
             params.y = dp(70);
 
             w.setAttributes(params);
 
-            /*
-             * Bottom alignment keeps the lower edge fixed while the
-             * additional 5% height extends the panel upward.
-             */
-            final Window kioskWindow = w;
-
-            // Capture the final window reference so Java's lambda rules
-            // are satisfied even though the method reassigns w later.
             box.post(() -> {
                 try {
-                    int currentHeight = box.getMeasuredHeight();
+                    box.setPivotX(box.getWidth() / 2f);
+                    box.setPivotY(box.getHeight() / 2f);
 
-                    if (currentHeight > 0) {
-                        WindowManager.LayoutParams updated =
-                                kioskWindow.getAttributes();
-
-                        updated.width = width;
-                        updated.height =
-                                (int) (currentHeight * 1.05f);
-                        updated.gravity =
-                                Gravity.BOTTOM |
-                                Gravity.CENTER_HORIZONTAL;
-                        updated.y = dp(70);
-
-                        kioskWindow.setAttributes(updated);
-                    }
+                    box.setScaleX(0.90f);
+                    box.setScaleY(1.05f);
                 } catch (Exception ignored) {
                 }
             });
