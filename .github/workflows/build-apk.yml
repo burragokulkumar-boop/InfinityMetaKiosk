@@ -61,7 +61,7 @@ jobs:
           PACKAGE_PATH=$(echo "$PACKAGE" | tr '.' '/')
           mkdir -p "build_project/app/src/main/java/$PACKAGE_PATH"
 
-          for FILE in MainActivity.java KioskDeviceAdminReceiver.java KioskBootReceiver.java ManagementService.java ManagementCommandReceiver.java ApiClient.java DeviceRegistration.java UpdateManager.java UpdateInstallReceiver.java; do
+          for FILE in LauncherActivity.java MainActivity.java KioskDeviceAdminReceiver.java KioskBootReceiver.java ManagementService.java ManagementCommandReceiver.java ApiClient.java DeviceRegistration.java UpdateManager.java UpdateInstallReceiver.java; do
             if [ -f "$FILE" ]; then
               cp "$FILE" "build_project/app/src/main/java/$PACKAGE_PATH/"
             fi
