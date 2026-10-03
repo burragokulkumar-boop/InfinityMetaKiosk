@@ -92,6 +92,11 @@ public class ManagementCommandReceiver
                                 MainActivity.class
                         );
 
+                main.putExtra(
+                        "management_action",
+                        "com.infinitymeta.kiosk.ENTER_KIOSK"
+                );
+
                 main.addFlags(
                         Intent.FLAG_ACTIVITY_NEW_TASK |
                         Intent.FLAG_ACTIVITY_CLEAR_TOP |
