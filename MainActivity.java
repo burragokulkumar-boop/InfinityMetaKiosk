@@ -254,19 +254,44 @@ public class MainActivity extends Activity {
 
         kioskExitRequested = true;
 
-        /*
-         * Persist the exit BEFORE changing Device Owner policy.
-         * Any activity recreation during this transition must remain
-         * outside kiosk mode.
-         */
+        // Persist the disabled state before touching Device Owner policy.
         getSharedPreferences(KIOSK_PREFS, MODE_PRIVATE)
                 .edit()
                 .putBoolean(KIOSK_DISABLED_KEY, true)
                 .commit();
 
         /*
-         * First remove this app as the forced Home activity.
+         * The activity itself must leave Lock Task first. Android documents
+         * stopLockTask() as the operation that actually ends the current
+         * Lock Task session. Do not call setLockTaskFeatures(0) first:
+         * on Android 14+ lock-task features and the package allowlist are
+         * one policy, so changing that policy during the exit transition
+         * can interfere with the session we are trying to stop.
          */
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                stopLockTask();
+            }
+        } catch (Exception ignored) {
+        }
+
+        /*
+         * Now remove the kiosk policies. Removing this package from the
+         * allowlist also finishes any remaining locked task belonging to it.
+         */
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                    && devicePolicyManager != null
+                    && adminComponent != null) {
+
+                devicePolicyManager.setLockTaskPackages(
+                        adminComponent,
+                        new String[0]
+                );
+            }
+        } catch (Exception ignored) {
+        }
+
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
                     && devicePolicyManager != null
@@ -281,42 +306,6 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {
         }
 
-        /*
-         * Leave Lock Task BEFORE removing the allowlist.  stopLockTask()
-         * is the actual operation that exits Lock Task mode; clearing the
-         * allowlist is only a safeguard against immediate re-entry.
-         */
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
-                    && devicePolicyManager != null
-                    && adminComponent != null) {
-                devicePolicyManager.setLockTaskFeatures(
-                        adminComponent,
-                        0
-                );
-            }
-        } catch (Exception ignored) {
-        }
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                stopLockTask();
-            }
-        } catch (Exception ignored) {
-        }
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
-                    && devicePolicyManager != null
-                    && adminComponent != null) {
-                devicePolicyManager.setLockTaskPackages(
-                        adminComponent,
-                        new String[0]
-                );
-            }
-        } catch (Exception ignored) {
-        }
-
         showSystemBars();
 
         Toast.makeText(
@@ -326,29 +315,54 @@ public class MainActivity extends Activity {
         ).show();
 
         /*
-         * Explicitly return to the normal Android Home launcher.
-         * This is important on Samsung devices because simply finishing
-         * the kiosk Home activity can otherwise leave Android on the same
-         * task or immediately resolve the kiosk as Home again.
+         * Resolve a HOME activity other than this kiosk. We deliberately
+         * do not use resolveActivity() here because this app is itself a
+         * HOME activity and can still be returned while Android is updating
+         * the persistent-home policy.
          */
         try {
             Intent homeIntent = new Intent(Intent.ACTION_MAIN);
             homeIntent.addCategory(Intent.CATEGORY_HOME);
             homeIntent.addCategory(Intent.CATEGORY_DEFAULT);
-            homeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-            android.content.pm.ResolveInfo home =
-                    getPackageManager().resolveActivity(
+            List<android.content.pm.ResolveInfo> homes =
+                    getPackageManager().queryIntentActivities(
                             homeIntent,
                             android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
                     );
 
-            if (home == null
-                    || home.activityInfo == null
-                    || !getPackageName().equals(
-                            home.activityInfo.packageName
-                    )) {
-                startActivity(homeIntent);
+            android.content.pm.ResolveInfo selectedHome = null;
+
+            for (android.content.pm.ResolveInfo candidate : homes) {
+                if (candidate == null
+                        || candidate.activityInfo == null) {
+                    continue;
+                }
+
+                if (!getPackageName().equals(
+                        candidate.activityInfo.packageName
+                )) {
+                    selectedHome = candidate;
+                    break;
+                }
+            }
+
+            if (selectedHome != null) {
+                ComponentName homeComponent =
+                        new ComponentName(
+                                selectedHome.activityInfo.packageName,
+                                selectedHome.activityInfo.name
+                        );
+
+                Intent launchHome =
+                        new Intent(Intent.ACTION_MAIN);
+
+                launchHome.addCategory(Intent.CATEGORY_HOME);
+                launchHome.addCategory(Intent.CATEGORY_DEFAULT);
+                launchHome.setComponent(homeComponent);
+                launchHome.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                startActivity(launchHome);
             }
         } catch (Exception ignored) {
         }
