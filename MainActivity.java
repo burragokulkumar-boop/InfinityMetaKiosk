@@ -293,7 +293,10 @@ public class MainActivity extends Activity {
                  * if Android recreates the activity while we exit.
                  * Opening the app again will configure kiosk mode.
                  */
-                stopLockTask();
+                try {
+                    stopLockTask();
+                } catch (Exception ignored) {
+                }
 
                 try {
                     devicePolicyManager.setLockTaskPackages(
