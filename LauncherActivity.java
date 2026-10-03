@@ -21,6 +21,11 @@ public class LauncherActivity extends Activity {
                     new ComponentName(this, MainActivity.class),
                     android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                     android.content.pm.PackageManager.DONT_KILL_APP);
+
+            getPackageManager().setComponentEnabledSetting(
+                    new ComponentName(this, KioskBootReceiver.class),
+                    android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                    android.content.pm.PackageManager.DONT_KILL_APP);
         } catch (Exception ignored) {}
 
         Intent intent = new Intent(this, MainActivity.class);
