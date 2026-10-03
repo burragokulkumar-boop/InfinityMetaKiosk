@@ -250,6 +250,15 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void disableKioskHomeComponent() {
+        try {
+            getPackageManager().setComponentEnabledSetting(
+                    new ComponentName(this, MainActivity.class),
+                    android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    android.content.pm.PackageManager.DONT_KILL_APP);
+        } catch (Exception ignored) {}
+    }
+
     private void exitKiosk() {
 
         kioskExitRequested = true;
@@ -366,6 +375,9 @@ public class MainActivity extends Activity {
             }
         } catch (Exception ignored) {
         }
+
+        // Remove the kiosk activity itself from HOME resolution.
+        disableKioskHomeComponent();
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
