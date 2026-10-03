@@ -98,7 +98,21 @@ public class MainActivity extends Activity {
                 getIntent() != null
                         && getIntent().getBooleanExtra("BOOT_START", false);
 
-        if (!bootLaunch) {
+        boolean launcherLaunch = false;
+        if (getIntent() != null) {
+            launcherLaunch = getIntent().hasCategory(Intent.CATEGORY_LAUNCHER);
+        }
+
+        /*
+         * Do NOT clear the disabled state on every activity recreation.
+         * Android/Samsung can recreate or relaunch the Home activity while
+         * we are leaving Lock Task. Clearing the flag here would immediately
+         * call startLockTask() again and make Exit Kiosk appear broken.
+         *
+         * A real launcher tap is an explicit request to open this app again,
+         * so only a CATEGORY_LAUNCHER launch re-enables kiosk mode.
+         */
+        if (launcherLaunch && !bootLaunch) {
             kioskDisabled = false;
             getSharedPreferences(KIOSK_PREFS, MODE_PRIVATE)
                     .edit()
