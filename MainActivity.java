@@ -456,8 +456,15 @@ public class MainActivity extends Activity {
 
                 if (controller != null) {
 
+                    /*
+                     * True immersive kiosk mode:
+                     * hide both the status bar and the navigation bar.
+                     * Android will reveal them temporarily when the user
+                     * swipes from the system-bar edge.
+                     */
                     controller.hide(
                             WindowInsets.Type.statusBars()
+                                    | WindowInsets.Type.navigationBars()
                     );
 
                     controller.setSystemBarsBehavior(
@@ -473,9 +480,13 @@ public class MainActivity extends Activity {
                         .setSystemUiVisibility(
                                 View.SYSTEM_UI_FLAG_FULLSCREEN
                                         |
+                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                        |
                                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                                         |
                                 View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                        |
+                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                                         |
                                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         );
