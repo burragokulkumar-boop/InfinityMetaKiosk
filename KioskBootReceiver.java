@@ -18,6 +18,23 @@ public class KioskBootReceiver extends BroadcastReceiver {
         if (Intent.ACTION_BOOT_COMPLETED.equals(action)
                 || Intent.ACTION_LOCKED_BOOT_COMPLETED.equals(action)) {
 
+            /*
+             * If the user intentionally exited kiosk mode, do not
+             * relaunch the kiosk automatically after reboot.
+             */
+            boolean kioskDisabled =
+                    context.getSharedPreferences(
+                            "kiosk_state",
+                            Context.MODE_PRIVATE
+                    ).getBoolean(
+                            "kiosk_disabled_after_exit",
+                            false
+                    );
+
+            if (kioskDisabled) {
+                return;
+            }
+
             Intent kioskIntent =
                     new Intent(context, MainActivity.class);
 
