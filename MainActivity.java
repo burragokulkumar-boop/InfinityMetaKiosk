@@ -475,6 +475,16 @@ public class MainActivity extends Activity {
                     managementAction
             )) {
                 exitKiosk();
+            } else if ("com.infinitymeta.kiosk.ENTER_KIOSK".equals(
+                    managementAction
+            )) {
+                getSharedPreferences(KIOSK_PREFS, MODE_PRIVATE)
+                        .edit()
+                        .putBoolean(KIOSK_DISABLED_KEY, false)
+                        .apply();
+                kioskExitRequested = false;
+                hideSystemBars();
+                configureAndEnterKiosk();
             } else if ("com.infinitymeta.kiosk.CLEAR_APP_DATA".equals(
                     managementAction
             )) {
