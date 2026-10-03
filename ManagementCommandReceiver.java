@@ -1,6 +1,7 @@
 package com.infinitymeta.kiosk;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
@@ -33,6 +34,15 @@ public class ManagementCommandReceiver
         } catch (Exception ignored) {
             return -1;
         }
+    }
+
+    private void enableKioskHomeComponent(Context context) {
+        try {
+            context.getPackageManager().setComponentEnabledSetting(
+                    new ComponentName(context, MainActivity.class),
+                    android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                    android.content.pm.PackageManager.DONT_KILL_APP);
+        } catch (Exception ignored) {}
     }
 
     @Override
@@ -84,7 +94,9 @@ public class ManagementCommandReceiver
                 break;
 
             case "ENTER_KIOSK":
+                    enableKioskHomeComponent(context);
             case "RESTART_KIOSK":
+                    enableKioskHomeComponent(context);
 
                 Intent main =
                         new Intent(
