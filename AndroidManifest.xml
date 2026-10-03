@@ -31,6 +31,18 @@
         android:allowBackup="false"
         android:supportsRtl="true">
 
+        <!-- Normal launcher entry. Remains enabled after Exit Kiosk. -->
+        <activity
+            android:name=".LauncherActivity"
+            android:screenOrientation="portrait"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!-- Main Kiosk / Home activity -->
         <activity
             android:name=".MainActivity"
@@ -41,12 +53,8 @@
 
             <intent-filter>
 
-                <!-- Normal launcher -->
                 <action
                     android:name="android.intent.action.MAIN" />
-
-                <category
-                    android:name="android.intent.category.LAUNCHER" />
 
                 <!-- Make this app a Home activity -->
                 <category
