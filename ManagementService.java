@@ -14,10 +14,18 @@ public class ManagementService extends Service {
     private static final long POLL_INTERVAL =
             30_000L;
 
+    /*
+     * Registration is also the device heartbeat. Retrying it is important:
+     * the first request can fail while Wi-Fi/DNS/Render is waking up.
+     */
+    private static final long REGISTRATION_INTERVAL =
+            30_000L;
+
     private DeviceRegistration registration;
     private ApiClient apiClient;
 
     private boolean running = true;
+    private boolean registered = false;
 
     private final Handler handler =
             new Handler(Looper.getMainLooper());
@@ -107,12 +115,15 @@ public class ManagementService extends Service {
                         public void onSuccess(
                                 String response
                         ) {
+                            registered = true;
                         }
 
                         @Override
                         public void onError(
                                 String error
                         ) {
+                            registered = false;
+                            scheduleRegistrationRetry();
                         }
                     }
             );
@@ -121,7 +132,28 @@ public class ManagementService extends Service {
         }
     }
 
+    private void scheduleRegistrationRetry() {
+
+        if (!running) {
+            return;
+        }
+
+        handler.postDelayed(
+                this::registerDevice,
+                REGISTRATION_INTERVAL
+        );
+    }
+
     private void pollCommands() {
+
+        /*
+         * If registration failed or the server restarted and forgot this
+         * device, do not just keep polling a 404 forever. Re-register first.
+         */
+        if (!registered) {
+            registerDevice();
+            return;
+        }
 
         apiClient.getCommands(
                 registration.getDeviceId(),
@@ -132,6 +164,7 @@ public class ManagementService extends Service {
                             String response
                     ) {
 
+                        registered = true;
                         processCommands(response);
                     }
 
@@ -139,6 +172,14 @@ public class ManagementService extends Service {
                     public void onError(
                             String error
                     ) {
+                        /*
+                         * A 404 means the server restarted and lost the
+                         * in-memory device record. Re-register immediately
+                         * on the next cycle.
+                         */
+                        if (error != null && error.contains("HTTP 404")) {
+                            registered = false;
+                        }
                     }
                 }
         );
