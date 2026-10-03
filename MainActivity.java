@@ -847,6 +847,8 @@ public class MainActivity extends Activity {
              */
             final Window kioskWindow = w;
 
+            // Capture the final window reference so Java's lambda rules
+            // are satisfied even though the method reassigns w later.
             box.post(() -> {
                 try {
                     int currentHeight = box.getMeasuredHeight();
