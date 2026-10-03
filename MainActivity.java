@@ -255,40 +255,22 @@ public class MainActivity extends Activity {
         kioskExitRequested = true;
 
         /*
-         * Persist the exit state before changing Device Owner kiosk
-         * policy. If Android recreates this activity during/after the
-         * transition, it must NOT immediately call startLockTask().
+         * Persist the exit BEFORE changing Device Owner policy.
+         * Any activity recreation during this transition must remain
+         * outside kiosk mode.
          */
         getSharedPreferences(KIOSK_PREFS, MODE_PRIVATE)
                 .edit()
                 .putBoolean(KIOSK_DISABLED_KEY, true)
-                .apply();
+                .commit();
 
+        /*
+         * First remove this app as the forced Home activity.
+         */
         try {
-
-            /*
-             * We normally keep this app as the persistent Home activity
-             * while kiosk mode is active. Clear that preference BEFORE
-             * leaving kiosk mode; otherwise Android can immediately
-             * route Home back to this app and make Exit appear broken.
-             */
-            if (Build.VERSION.SDK_INT >=
-                    Build.VERSION_CODES.LOLLIPOP &&
-                    devicePolicyManager != null &&
-                    adminComponent != null) {
-
-                IntentFilter homeFilter =
-                        new IntentFilter(
-                                Intent.ACTION_MAIN
-                        );
-
-                homeFilter.addCategory(
-                        Intent.CATEGORY_HOME
-                );
-
-                homeFilter.addCategory(
-                        Intent.CATEGORY_DEFAULT
-                );
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                    && devicePolicyManager != null
+                    && adminComponent != null) {
 
                 devicePolicyManager
                         .clearPackagePersistentPreferredActivities(
@@ -296,64 +278,46 @@ public class MainActivity extends Activity {
                                 getPackageName()
                         );
             }
+        } catch (Exception ignored) {
+        }
 
-            if (Build.VERSION.SDK_INT >=
-                    Build.VERSION_CODES.LOLLIPOP) {
-
-                /*
-                 * Temporarily remove the kiosk packages from the
-                 * Device Owner Lock Task allowlist. This prevents
-                 * the kiosk from immediately re-entering Lock Task
-                 * if Android recreates the activity while we exit.
-                 * Opening the app again will configure kiosk mode.
-                 */
-                try {
-                    stopLockTask();
-                } catch (Exception ignored) {
-                }
-
-                try {
-                    devicePolicyManager.setLockTaskPackages(
-                            adminComponent,
-                            new String[0]
-                    );
-                } catch (Exception ignored) {
-                }
+        /*
+         * Leave Lock Task BEFORE removing the allowlist.  stopLockTask()
+         * is the actual operation that exits Lock Task mode; clearing the
+         * allowlist is only a safeguard against immediate re-entry.
+         */
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                    && devicePolicyManager != null
+                    && adminComponent != null) {
+                devicePolicyManager.setLockTaskFeatures(
+                        adminComponent,
+                        0
+                );
             }
-
         } catch (Exception ignored) {
         }
 
         try {
-
-            if (Build.VERSION.SDK_INT >=
-                    Build.VERSION_CODES.R) {
-
-                Window window = getWindow();
-
-                WindowInsetsController controller =
-                        window.getInsetsController();
-
-                if (controller != null) {
-
-                    controller.show(
-                            WindowInsets.Type.statusBars()
-                                    |
-                            WindowInsets.Type.navigationBars()
-                    );
-                }
-
-            } else {
-
-                getWindow()
-                        .getDecorView()
-                        .setSystemUiVisibility(
-                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        );
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                stopLockTask();
             }
-
         } catch (Exception ignored) {
         }
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                    && devicePolicyManager != null
+                    && adminComponent != null) {
+                devicePolicyManager.setLockTaskPackages(
+                        adminComponent,
+                        new String[0]
+                );
+            }
+        } catch (Exception ignored) {
+        }
+
+        showSystemBars();
 
         Toast.makeText(
                 this,
@@ -361,20 +325,41 @@ public class MainActivity extends Activity {
                 Toast.LENGTH_SHORT
         ).show();
 
+        /*
+         * Explicitly return to the normal Android Home launcher.
+         * This is important on Samsung devices because simply finishing
+         * the kiosk Home activity can otherwise leave Android on the same
+         * task or immediately resolve the kiosk as Home again.
+         */
         try {
+            Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+            homeIntent.addCategory(Intent.CATEGORY_HOME);
+            homeIntent.addCategory(Intent.CATEGORY_DEFAULT);
+            homeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-            if (Build.VERSION.SDK_INT >=
-                    Build.VERSION_CODES.LOLLIPOP) {
+            android.content.pm.ResolveInfo home =
+                    getPackageManager().resolveActivity(
+                            homeIntent,
+                            android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
+                    );
 
+            if (home == null
+                    || home.activityInfo == null
+                    || !getPackageName().equals(
+                            home.activityInfo.packageName
+                    )) {
+                startActivity(homeIntent);
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 finishAndRemoveTask();
-
             } else {
-
                 finish();
             }
-
         } catch (Exception ignored) {
-
             finish();
         }
     }
