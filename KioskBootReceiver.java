@@ -21,6 +21,12 @@ public class KioskBootReceiver extends BroadcastReceiver {
             Intent kioskIntent =
                     new Intent(context, MainActivity.class);
 
+            /*
+             * Mark this as a boot launch so a previous intentional
+             * Exit Kiosk state is respected after reboot.
+             */
+            kioskIntent.putExtra("BOOT_START", true);
+
             kioskIntent.addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK
                             | Intent.FLAG_ACTIVITY_CLEAR_TOP
