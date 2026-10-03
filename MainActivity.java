@@ -808,6 +808,11 @@ public class MainActivity extends Activity {
 
         if (w != null) {
 
+            /*
+             * Kiosk UI sizing:
+             * 10% narrower than the current width, symmetrically
+             * from both sides, and 5% taller vertically.
+             */
             int width =
                     Math.min(
                             dp(610),
@@ -816,13 +821,10 @@ public class MainActivity extends Activity {
                                             .getDisplayMetrics()
                                             .widthPixels
                                             * 0.78f
+                                            * 0.90f
                             )
                     );
 
-            /*
-             * Slightly lower position to match
-             * the supplied screenshot.
-             */
             WindowManager.LayoutParams params =
                     w.getAttributes();
 
@@ -838,6 +840,32 @@ public class MainActivity extends Activity {
             params.y = dp(70);
 
             w.setAttributes(params);
+
+            /*
+             * Bottom alignment keeps the lower edge fixed while the
+             * additional 5% height extends the panel upward.
+             */
+            box.post(() -> {
+                try {
+                    int currentHeight = box.getMeasuredHeight();
+
+                    if (currentHeight > 0) {
+                        WindowManager.LayoutParams updated =
+                                w.getAttributes();
+
+                        updated.width = width;
+                        updated.height =
+                                (int) (currentHeight * 1.05f);
+                        updated.gravity =
+                                Gravity.BOTTOM |
+                                Gravity.CENTER_HORIZONTAL;
+                        updated.y = dp(70);
+
+                        w.setAttributes(updated);
+                    }
+                } catch (Exception ignored) {
+                }
+            });
         }
     }
 
