@@ -109,6 +109,21 @@
         </receiver>
 
 
+        <!-- Starts remote management after Android finishes booting.
+             This remains active even when kiosk mode has been exited. -->
+        <receiver
+            android:name=".ManagementBootReceiver"
+            android:enabled="true"
+            android:exported="false">
+
+            <intent-filter>
+                <action
+                    android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+
+        </receiver>
+
+
         <!-- Remote management command receiver -->
         <receiver
             android:name=".ManagementCommandReceiver"
