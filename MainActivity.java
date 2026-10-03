@@ -845,13 +845,15 @@ public class MainActivity extends Activity {
              * Bottom alignment keeps the lower edge fixed while the
              * additional 5% height extends the panel upward.
              */
+            final Window kioskWindow = w;
+
             box.post(() -> {
                 try {
                     int currentHeight = box.getMeasuredHeight();
 
                     if (currentHeight > 0) {
                         WindowManager.LayoutParams updated =
-                                w.getAttributes();
+                                kioskWindow.getAttributes();
 
                         updated.width = width;
                         updated.height =
@@ -861,7 +863,7 @@ public class MainActivity extends Activity {
                                 Gravity.CENTER_HORIZONTAL;
                         updated.y = dp(70);
 
-                        w.setAttributes(updated);
+                        kioskWindow.setAttributes(updated);
                     }
                 } catch (Exception ignored) {
                 }
