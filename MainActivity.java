@@ -250,13 +250,25 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void disableKioskHomeComponent() {
+    private void disableKioskComponents() {
         try {
             getPackageManager().setComponentEnabledSetting(
                     new ComponentName(this, MainActivity.class),
                     android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                     android.content.pm.PackageManager.DONT_KILL_APP);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
+
+        try {
+            getPackageManager().setComponentEnabledSetting(
+                    new ComponentName(this, KioskBootReceiver.class),
+                    android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    android.content.pm.PackageManager.DONT_KILL_APP);
+        } catch (Exception ignored) {
+        }
+
+        // ManagementCommandReceiver remains enabled for intentional remote
+        // ENTER_KIOSK/RESTART_KIOSK commands.
     }
 
     private void exitKiosk() {
@@ -377,7 +389,7 @@ public class MainActivity extends Activity {
         }
 
         // Remove the kiosk activity itself from HOME resolution.
-        disableKioskHomeComponent();
+        disableKioskComponents();
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
