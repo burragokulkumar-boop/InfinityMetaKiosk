@@ -50,6 +50,14 @@ public class MainActivity extends Activity {
 
     private boolean kioskExitRequested = false;
 
+    /*
+     * Set after the user successfully exits kiosk mode.
+     * This prevents onCreate/onResume from immediately putting
+     * the device back into Lock Task mode.
+     */
+    private static final String KIOSK_PREFS = "kiosk_state";
+    private static final String KIOSK_DISABLED_KEY = "kiosk_disabled_after_exit";
+
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -77,11 +85,36 @@ public class MainActivity extends Activity {
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
         );
 
-        hideSystemBars();
+        boolean kioskDisabled =
+                getSharedPreferences(KIOSK_PREFS, MODE_PRIVATE)
+                        .getBoolean(KIOSK_DISABLED_KEY, false);
+
+        /*
+         * A normal explicit launch of the app is treated as a request
+         * to start kiosk again. Boot launches carry BOOT_START=true,
+         * so an intentional Exit remains exited after reboot.
+         */
+        boolean bootLaunch =
+                getIntent() != null
+                        && getIntent().getBooleanExtra("BOOT_START", false);
+
+        if (!bootLaunch) {
+            kioskDisabled = false;
+            getSharedPreferences(KIOSK_PREFS, MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(KIOSK_DISABLED_KEY, false)
+                    .apply();
+        }
+
+        if (kioskDisabled) {
+            kioskExitRequested = true;
+            showSystemBars();
+        } else {
+            hideSystemBars();
+            configureAndEnterKiosk();
+        }
 
         setContentView(new HomeView(this));
-
-        configureAndEnterKiosk();
 
         startManagementService();
     }
@@ -108,6 +141,8 @@ public class MainActivity extends Activity {
 
         if (!kioskExitRequested) {
             hideSystemBars();
+        } else {
+            showSystemBars();
         }
     }
 
@@ -204,6 +239,16 @@ public class MainActivity extends Activity {
     private void exitKiosk() {
 
         kioskExitRequested = true;
+
+        /*
+         * Persist the exit state before changing Device Owner kiosk
+         * policy. If Android recreates this activity during/after the
+         * transition, it must NOT immediately call startLockTask().
+         */
+        getSharedPreferences(KIOSK_PREFS, MODE_PRIVATE)
+                .edit()
+                .putBoolean(KIOSK_DISABLED_KEY, true)
+                .apply();
 
         try {
 
@@ -311,6 +356,40 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {
 
             finish();
+        }
+    }
+
+    private void showSystemBars() {
+
+        try {
+
+            if (Build.VERSION.SDK_INT >=
+                    Build.VERSION_CODES.R) {
+
+                Window window = getWindow();
+
+                WindowInsetsController controller =
+                        window.getInsetsController();
+
+                if (controller != null) {
+
+                    controller.show(
+                            WindowInsets.Type.statusBars()
+                                    |
+                            WindowInsets.Type.navigationBars()
+                    );
+                }
+
+            } else {
+
+                getWindow()
+                        .getDecorView()
+                        .setSystemUiVisibility(
+                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        );
+            }
+
+        } catch (Exception ignored) {
         }
     }
 
