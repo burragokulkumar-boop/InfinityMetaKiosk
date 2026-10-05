@@ -633,10 +633,15 @@ public class MainActivity extends Activity {
 
         box.setBackground(
                 rounded(
-                        34,
+                        32,
                         Color.WHITE
                 )
         );
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            box.setClipToOutline(true);
+            box.setElevation(dp(2));
+        }
 
         TextView title =
                 label(
@@ -844,16 +849,9 @@ public class MainActivity extends Activity {
 
             w.setAttributes(params);
 
-            box.post(() -> {
-                try {
-                    box.setPivotX(box.getWidth() / 2f);
-                    box.setPivotY(box.getHeight() / 2f);
+            // Do not scale the panel after layout.
+            // Scaling a WRAP_CONTENT dialog can clip the rounded corners.
 
-                    box.setScaleX(0.90f);
-                    box.setScaleY(1.05f);
-                } catch (Exception ignored) {
-                }
-            });
         }
     }
 
