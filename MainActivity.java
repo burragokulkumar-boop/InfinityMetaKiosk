@@ -1399,7 +1399,7 @@ public class MainActivity extends Activity {
                 label(
                         "Exit Kiosk",
                         20,
-                        Color.rgb(45, 45, 45)
+                        Color.rgb(48, 48, 48)
                 );
 
         title.setTypeface(
@@ -1536,7 +1536,7 @@ public class MainActivity extends Activity {
                 label(
                         "Cancel",
                         18,
-                        Color.rgb(45, 45, 45)
+                        Color.rgb(48, 48, 48)
                 );
 
         cancel.setGravity(
@@ -1565,7 +1565,7 @@ public class MainActivity extends Activity {
                 label(
                         "Exit Kiosk",
                         18,
-                        Color.rgb(185, 185, 185)
+                        Color.rgb(190, 190, 190)
                 );
 
         exit.setGravity(
@@ -1655,8 +1655,8 @@ public class MainActivity extends Activity {
 
                         exit.setTextColor(
                                 valid
-                                        ? Color.rgb(45, 45, 45)
-                                        : Color.rgb(185, 185, 185)
+                                        ? Color.rgb(48, 48, 48)
+                                        : Color.rgb(190, 190, 190)
                         );
                     }
 
