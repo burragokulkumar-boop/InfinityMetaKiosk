@@ -1419,6 +1419,8 @@ public class MainActivity extends Activity {
                 )
         );
 
+        divider(box);
+
         TextView description =
                 label(
                         "Enter the code provided by your IT admin.",
@@ -1711,7 +1713,11 @@ public class MainActivity extends Activity {
             window.setAttributes(params);
         }
 
-        pinInput.requestFocus();
+        if (window != null) {
+            window.setSoftInputMode(
+                    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+            );
+        }
     }
 
     private void addExitInfoRow(
