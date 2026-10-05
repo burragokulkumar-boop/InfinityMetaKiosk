@@ -1361,12 +1361,101 @@ public class MainActivity extends Activity {
      */
     private void confirmExit() {
 
+        /*
+         * Custom Exit Kiosk dialog.
+         *
+         * This intentionally follows the supplied reference:
+         * - large white rounded panel
+         * - Exit Kiosk title
+         * - admin-code description
+         * - simple underline code field
+         * - User ID / Device name / IMEI / Tenant ID information
+         * - bottom Cancel / Exit Kiosk actions
+         */
+        final Dialog dialog = new Dialog(this);
+
+        LinearLayout box =
+                new LinearLayout(this);
+
+        box.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        box.setPadding(
+                dp(28),
+                dp(18),
+                dp(28),
+                dp(8)
+        );
+
+        box.setBackground(
+                rounded(
+                        28,
+                        Color.WHITE
+                )
+        );
+
+        TextView title =
+                label(
+                        "Exit Kiosk",
+                        20,
+                        Color.rgb(45, 45, 45)
+                );
+
+        title.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        title.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
+
+        box.addView(
+                title,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(58)
+                )
+        );
+
+        TextView description =
+                label(
+                        "Enter the code provided by your IT admin.",
+                        16,
+                        Color.rgb(105, 105, 105)
+                );
+
+        description.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
+
+        box.addView(
+                description,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(70)
+                )
+        );
+
         final EditText pinInput =
                 new EditText(this);
 
         pinInput.setHint(
-                "Enter Exit Kiosk PIN"
+                "Enter code"
         );
+
+        pinInput.setHintTextColor(
+                Color.rgb(105, 145, 210)
+        );
+
+        pinInput.setTextColor(
+                Color.rgb(55, 55, 55)
+        );
+
+        pinInput.setTextSize(16);
+
+        pinInput.setSingleLine(true);
 
         pinInput.setInputType(
                 InputType.TYPE_CLASS_NUMBER
@@ -1374,102 +1463,322 @@ public class MainActivity extends Activity {
                 InputType.TYPE_NUMBER_VARIATION_PASSWORD
         );
 
-        pinInput.setSingleLine(true);
-
-        int padding = dp(20);
-
         pinInput.setPadding(
-                padding,
-                padding,
-                padding,
-                padding
+                0,
+                0,
+                0,
+                0
         );
 
-        LinearLayout container =
-                new LinearLayout(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            pinInput.setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            Color.rgb(145, 145, 145)
+                    )
+            );
+        }
 
-        container.setOrientation(
-                LinearLayout.VERTICAL
-        );
-
-        container.setPadding(
-                dp(10),
-                dp(5),
-                dp(10),
-                dp(5)
-        );
-
-        container.addView(
+        box.addView(
                 pinInput,
                 new LinearLayout.LayoutParams(
                         -1,
-                        dp(60)
+                        dp(58)
                 )
         );
 
-        AlertDialog dialog =
-                new AlertDialog.Builder(this)
-                        .setTitle(
-                                "Exit Kiosk"
-                        )
-                        .setMessage(
-                                "Enter the Exit Kiosk PIN to continue."
-                        )
-                        .setView(
-                                container
-                        )
-                        .setNegativeButton(
-                                "Cancel",
-                                null
-                        )
-                        .setPositiveButton(
-                                "Exit",
-                                null
-                        )
-                        .create();
+        String deviceName =
+                new DeviceRegistration(this)
+                        .getDeviceName();
 
-        dialog.setOnShowListener(
-                d -> {
+        if (deviceName == null ||
+                deviceName.trim().isEmpty()) {
+            deviceName = "268030624_Android_1";
+        }
 
-                    dialog.getButton(
-                            AlertDialog.BUTTON_POSITIVE
-                    ).setOnClickListener(
-                            v -> {
+        addExitInfoRow(
+                box,
+                "User ID",
+                "268030624"
+        );
 
-                                String enteredPin =
-                                        pinInput
-                                                .getText()
-                                                .toString()
-                                                .trim();
+        addExitInfoRow(
+                box,
+                "Device name",
+                deviceName
+        );
 
-                                if (EXIT_KIOSK_PIN.equals(
-                                        enteredPin
-                                )) {
+        addExitInfoRow(
+                box,
+                "IMEI",
+                "-"
+        );
 
-                                    dialog.dismiss();
+        addExitInfoRow(
+                box,
+                "Tenant ID",
+                "srichaitanya.net"
+        );
 
-                                    if (kioskDialog != null &&
-                                            kioskDialog.isShowing()) {
+        LinearLayout buttons =
+                new LinearLayout(this);
 
-                                        kioskDialog.dismiss();
-                                    }
+        buttons.setOrientation(
+                LinearLayout.HORIZONTAL
+        );
 
-                                    exitKiosk();
+        buttons.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
 
-                                } else {
+        TextView cancel =
+                label(
+                        "Cancel",
+                        18,
+                        Color.rgb(45, 45, 45)
+                );
 
-                                    pinInput.setError(
-                                            "Incorrect PIN"
-                                    );
+        cancel.setGravity(
+                Gravity.CENTER
+        );
 
-                                    pinInput.requestFocus();
-                                }
-                            }
-                    );
+        cancel.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        cancel.setOnClickListener(
+                v -> dialog.dismiss()
+        );
+
+        buttons.addView(
+                cancel,
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(64),
+                        1
+                )
+        );
+
+        final TextView exit =
+                label(
+                        "Exit Kiosk",
+                        18,
+                        Color.rgb(185, 185, 185)
+                );
+
+        exit.setGravity(
+                Gravity.CENTER
+        );
+
+        exit.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        exit.setEnabled(false);
+
+        exit.setOnClickListener(
+                v -> {
+
+                    String enteredPin =
+                            pinInput
+                                    .getText()
+                                    .toString()
+                                    .trim();
+
+                    if (EXIT_KIOSK_PIN.equals(
+                            enteredPin
+                    )) {
+
+                        dialog.dismiss();
+
+                        if (kioskDialog != null &&
+                                kioskDialog.isShowing()) {
+
+                            kioskDialog.dismiss();
+                        }
+
+                        exitKiosk();
+
+                    } else {
+
+                        pinInput.setError(
+                                "Incorrect PIN"
+                        );
+
+                        pinInput.requestFocus();
+                    }
                 }
         );
 
+        buttons.addView(
+                exit,
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(64),
+                        1
+                )
+        );
+
+        box.addView(
+                buttons
+        );
+
+        pinInput.addTextChangedListener(
+                new android.text.TextWatcher() {
+
+                    @Override
+                    public void beforeTextChanged(
+                            CharSequence s,
+                            int start,
+                            int count,
+                            int after
+                    ) {
+                    }
+
+                    @Override
+                    public void onTextChanged(
+                            CharSequence s,
+                            int start,
+                            int before,
+                            int count
+                    ) {
+
+                        boolean valid =
+                                EXIT_KIOSK_PIN.equals(
+                                        s.toString()
+                                );
+
+                        exit.setEnabled(valid);
+
+                        exit.setTextColor(
+                                valid
+                                        ? Color.rgb(45, 45, 45)
+                                        : Color.rgb(185, 185, 185)
+                        );
+                    }
+
+                    @Override
+                    public void afterTextChanged(
+                            android.text.Editable s
+                    ) {
+                    }
+                }
+        );
+
+        dialog.setContentView(box);
+
+        Window firstWindow =
+                dialog.getWindow();
+
+        if (firstWindow != null) {
+            firstWindow.setBackgroundDrawableResource(
+                    android.R.color.transparent
+            );
+        }
+
+        dialog.setCanceledOnTouchOutside(true);
+
         dialog.show();
+
+        Window window =
+                dialog.getWindow();
+
+        if (window != null) {
+
+            int width =
+                    Math.min(
+                            dp(780),
+                            (int) (
+                                    getResources()
+                                            .getDisplayMetrics()
+                                            .widthPixels
+                                            * 0.78f
+                            )
+                    );
+
+            WindowManager.LayoutParams params =
+                    window.getAttributes();
+
+            params.width = width;
+
+            params.height =
+                    WindowManager.LayoutParams.WRAP_CONTENT;
+
+            params.gravity =
+                    Gravity.CENTER;
+
+            window.setAttributes(params);
+        }
+
+        pinInput.requestFocus();
+    }
+
+    private void addExitInfoRow(
+            LinearLayout box,
+            String titleText,
+            String valueText
+    ) {
+
+        LinearLayout row =
+                new LinearLayout(this);
+
+        row.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        row.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
+
+        TextView title =
+                label(
+                        titleText,
+                        18,
+                        Color.rgb(55, 55, 55)
+                );
+
+        title.setGravity(
+                Gravity.BOTTOM
+        );
+
+        TextView value =
+                label(
+                        valueText,
+                        16,
+                        Color.rgb(125, 125, 125)
+                );
+
+        value.setGravity(
+                Gravity.TOP
+        );
+
+        row.addView(
+                title,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(31)
+                )
+        );
+
+        row.addView(
+                value,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(31)
+                )
+        );
+
+        LinearLayout.LayoutParams rowParams =
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(72)
+                );
+
+        box.addView(
+                row,
+                rowParams
+        );
     }
 
     private void openInfinityMeta() {
