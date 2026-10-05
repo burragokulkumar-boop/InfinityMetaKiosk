@@ -633,7 +633,7 @@ public class MainActivity extends Activity {
 
         box.setBackground(
                 rounded(
-                        28,
+                        34,
                         Color.WHITE
                 )
         );
@@ -1708,7 +1708,11 @@ public class MainActivity extends Activity {
                     WindowManager.LayoutParams.WRAP_CONTENT;
 
             params.gravity =
-                    Gravity.CENTER;
+                    Gravity.BOTTOM |
+                    Gravity.CENTER_HORIZONTAL;
+
+            // Keep Exit Kiosk lower, matching the reference dialog position.
+            params.y = dp(55);
 
             window.setAttributes(params);
         }
