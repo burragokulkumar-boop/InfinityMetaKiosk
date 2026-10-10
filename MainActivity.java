@@ -193,10 +193,16 @@ public class MainActivity extends Activity {
             if (Build.VERSION.SDK_INT >=
                     Build.VERSION_CODES.P) {
 
+                /*
+                 * Keep Home available and allow the top system shade to
+                 * reveal time, battery, notifications and quick settings
+                 * when the user swipes down from the top edge.
+                 */
                 devicePolicyManager.setLockTaskFeatures(
                         adminComponent,
-                        DevicePolicyManager
-                                .LOCK_TASK_FEATURE_HOME
+                        DevicePolicyManager.LOCK_TASK_FEATURE_HOME
+                                | DevicePolicyManager.LOCK_TASK_FEATURE_SYSTEM_INFO
+                                | DevicePolicyManager.LOCK_TASK_FEATURE_NOTIFICATIONS
                 );
             }
 
