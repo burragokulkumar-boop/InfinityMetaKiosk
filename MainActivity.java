@@ -194,15 +194,14 @@ public class MainActivity extends Activity {
                     Build.VERSION_CODES.P) {
 
                 /*
-                 * Keep Home available and allow the top system shade to
-                 * reveal time, battery, notifications and quick settings
-                 * when the user swipes down from the top edge.
+                 * Keep Home available and show system information such as
+                 * time, battery and connectivity, but do NOT enable the
+                 * notification shade or Quick Settings while kiosk is active.
                  */
                 devicePolicyManager.setLockTaskFeatures(
                         adminComponent,
                         DevicePolicyManager.LOCK_TASK_FEATURE_HOME
                                 | DevicePolicyManager.LOCK_TASK_FEATURE_SYSTEM_INFO
-                                | DevicePolicyManager.LOCK_TASK_FEATURE_NOTIFICATIONS
                 );
             }
 
