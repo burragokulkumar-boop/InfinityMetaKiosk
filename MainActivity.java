@@ -41,7 +41,7 @@ public class MainActivity extends Activity {
             "apps.infinitylearn.lms";
 
     private static final String EXIT_KIOSK_PIN =
-            "0331";
+            "7396315765";
 
     private DevicePolicyManager devicePolicyManager;
     private ComponentName adminComponent;
@@ -1503,7 +1503,7 @@ public class MainActivity extends Activity {
         addExitInfoRow(
                 box,
                 "User ID",
-                "268030624"
+                "268065734"
         );
 
         addExitInfoRow(
