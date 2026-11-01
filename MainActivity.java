@@ -668,7 +668,7 @@ public class MainActivity extends Activity {
                 title,
                 new LinearLayout.LayoutParams(
                         -1,
-                        dp(55)
+                        dp(58)
                 )
         );
 
@@ -736,7 +736,7 @@ public class MainActivity extends Activity {
                 version,
                 new LinearLayout.LayoutParams(
                         -1,
-                        dp(70)
+                        dp(74)
                 )
         );
 
@@ -835,7 +835,7 @@ public class MainActivity extends Activity {
                                     getResources()
                                             .getDisplayMetrics()
                                             .widthPixels
-                                            * 0.78f
+                                            * 0.70f
                             )
                     );
 
@@ -915,7 +915,7 @@ public class MainActivity extends Activity {
                         Color.rgb(
                                 0,
                                 0,
-                                238
+                                255
                         )
                 );
 
