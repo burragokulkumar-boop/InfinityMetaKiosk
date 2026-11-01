@@ -890,19 +890,19 @@ public class MainActivity extends Activity {
                         17,
                         Color.rgb(12, 12, 12)
                 );
-        left.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        left.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
 
         TextView right =
                 label(
                         "View",
                         17,
                         Color.rgb(
-                                24,
-                                96,
-                                170
+                                0,
+                                0,
+                                255
                         )
                 );
-        right.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        right.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
 
         right.setGravity(
                 Gravity.CENTER
