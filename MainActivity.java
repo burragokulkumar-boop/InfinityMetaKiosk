@@ -888,19 +888,21 @@ public class MainActivity extends Activity {
                 label(
                         text,
                         17,
-                        Color.rgb(18, 18, 18)
+                        Color.rgb(12, 12, 12)
                 );
+        left.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         TextView right =
                 label(
                         "View",
                         17,
                         Color.rgb(
-                                38,
-                                112,
-                                184
+                                24,
+                                96,
+                                170
                         )
                 );
+        right.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         right.setGravity(
                 Gravity.CENTER
@@ -1099,8 +1101,9 @@ public class MainActivity extends Activity {
                 label(
                         name + "\n" + value,
                         17,
-                        Color.rgb(18, 18, 18)
+                        Color.rgb(12, 12, 12)
                 );
+        text.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         row.addView(
                 text,
@@ -1115,8 +1118,9 @@ public class MainActivity extends Activity {
                 label(
                         "›",
                         28,
-                        Color.rgb(45, 45, 45)
+                        Color.rgb(30, 30, 30)
                 );
+        arrow.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         arrow.setGravity(
                 Gravity.CENTER
@@ -1386,8 +1390,9 @@ public class MainActivity extends Activity {
                 label(
                         "Enter the code provided by your IT admin.",
                         16,
-                        Color.rgb(68, 68, 68)
+                        Color.rgb(48, 48, 48)
                 );
+        description.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         description.setGravity(
                 Gravity.CENTER_VERTICAL
@@ -1409,8 +1414,9 @@ public class MainActivity extends Activity {
         );
 
         pinInput.setHintTextColor(
-                Color.rgb(75, 115, 185)
+                Color.rgb(55, 95, 165)
         );
+        pinInput.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         pinInput.setTextColor(
                 Color.rgb(28, 28, 28)
@@ -1697,8 +1703,9 @@ public class MainActivity extends Activity {
                 label(
                         titleText,
                         18,
-                        Color.rgb(28, 28, 28)
+                        Color.rgb(18, 18, 18)
                 );
+        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         title.setGravity(
                 Gravity.BOTTOM
@@ -1708,8 +1715,9 @@ public class MainActivity extends Activity {
                 label(
                         valueText,
                         16,
-                        Color.rgb(82, 82, 82)
+                        Color.rgb(58, 58, 58)
                 );
+        value.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         value.setGravity(
                 Gravity.TOP
