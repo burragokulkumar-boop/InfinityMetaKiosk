@@ -664,11 +664,7 @@ public class MainActivity extends Activity {
                 label(
                         "Kiosk",
                         20,
-                        Color.rgb(
-                                45,
-                                45,
-                                45
-                        )
+                        Color.rgb(24, 24, 24)
                 );
 
         title.setTypeface(
@@ -730,11 +726,7 @@ public class MainActivity extends Activity {
                 label(
                         "Version\n1.0.6",
                         16,
-                        Color.rgb(
-                                45,
-                                45,
-                                45
-                        )
+                        Color.rgb(24, 24, 24)
                 );
 
         version.setPadding(
@@ -756,11 +748,7 @@ public class MainActivity extends Activity {
                 label(
                         "Installed date\n260808",
                         16,
-                        Color.rgb(
-                                45,
-                                45,
-                                45
-                        )
+                        Color.rgb(24, 24, 24)
                 );
 
         box.addView(
@@ -775,11 +763,7 @@ public class MainActivity extends Activity {
                 label(
                         "Done",
                         17,
-                        Color.rgb(
-                                40,
-                                40,
-                                40
-                        )
+                        Color.rgb(20, 20, 20)
                 );
 
         done.setGravity(
@@ -904,11 +888,7 @@ public class MainActivity extends Activity {
                 label(
                         text,
                         17,
-                        Color.rgb(
-                                35,
-                                35,
-                                35
-                        )
+                        Color.rgb(18, 18, 18)
                 );
 
         TextView right =
@@ -983,11 +963,7 @@ public class MainActivity extends Activity {
                 label(
                         "Settings",
                         20,
-                        Color.rgb(
-                                45,
-                                45,
-                                45
-                        )
+                        Color.rgb(24, 24, 24)
                 );
 
         title.setTypeface(
@@ -1041,11 +1017,7 @@ public class MainActivity extends Activity {
                 label(
                         "Done",
                         17,
-                        Color.rgb(
-                                40,
-                                40,
-                                40
-                        )
+                        Color.rgb(20, 20, 20)
                 );
 
         done.setGravity(
@@ -1127,11 +1099,7 @@ public class MainActivity extends Activity {
                 label(
                         name + "\n" + value,
                         17,
-                        Color.rgb(
-                                35,
-                                35,
-                                35
-                        )
+                        Color.rgb(18, 18, 18)
                 );
 
         row.addView(
@@ -1147,11 +1115,7 @@ public class MainActivity extends Activity {
                 label(
                         "›",
                         28,
-                        Color.rgb(
-                                70,
-                                70,
-                                70
-                        )
+                        Color.rgb(45, 45, 45)
                 );
 
         arrow.setGravity(
@@ -1396,7 +1360,7 @@ public class MainActivity extends Activity {
                 label(
                         "Exit Kiosk",
                         20,
-                        Color.rgb(48, 48, 48)
+                        Color.rgb(22, 22, 22)
                 );
 
         title.setTypeface(
@@ -1422,7 +1386,7 @@ public class MainActivity extends Activity {
                 label(
                         "Enter the code provided by your IT admin.",
                         16,
-                        Color.rgb(105, 105, 105)
+                        Color.rgb(68, 68, 68)
                 );
 
         description.setGravity(
@@ -1445,11 +1409,11 @@ public class MainActivity extends Activity {
         );
 
         pinInput.setHintTextColor(
-                Color.rgb(105, 145, 210)
+                Color.rgb(75, 115, 185)
         );
 
         pinInput.setTextColor(
-                Color.rgb(55, 55, 55)
+                Color.rgb(28, 28, 28)
         );
 
         pinInput.setTextSize(16);
@@ -1533,7 +1497,7 @@ public class MainActivity extends Activity {
                 label(
                         "Cancel",
                         18,
-                        Color.rgb(48, 48, 48)
+                        Color.rgb(22, 22, 22)
                 );
 
         cancel.setGravity(
@@ -1562,7 +1526,7 @@ public class MainActivity extends Activity {
                 label(
                         "Exit Kiosk",
                         18,
-                        Color.rgb(190, 190, 190)
+                        Color.rgb(145, 145, 145)
                 );
 
         exit.setGravity(
@@ -1652,8 +1616,8 @@ public class MainActivity extends Activity {
 
                         exit.setTextColor(
                                 valid
-                                        ? Color.rgb(48, 48, 48)
-                                        : Color.rgb(190, 190, 190)
+                                        ? Color.rgb(22, 22, 22)
+                                        : Color.rgb(145, 145, 145)
                         );
                     }
 
@@ -1733,7 +1697,7 @@ public class MainActivity extends Activity {
                 label(
                         titleText,
                         18,
-                        Color.rgb(55, 55, 55)
+                        Color.rgb(28, 28, 28)
                 );
 
         title.setGravity(
@@ -1744,7 +1708,7 @@ public class MainActivity extends Activity {
                 label(
                         valueText,
                         16,
-                        Color.rgb(125, 125, 125)
+                        Color.rgb(82, 82, 82)
                 );
 
         value.setGravity(
