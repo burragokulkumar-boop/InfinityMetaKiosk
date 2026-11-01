@@ -61,7 +61,7 @@ jobs:
           PACKAGE_PATH=$(echo "$PACKAGE" | tr '.' '/')
           mkdir -p "build_project/app/src/main/java/$PACKAGE_PATH"
 
-          for FILE in LauncherActivity.java MainActivity.java KioskDeviceAdminReceiver.java KioskBootReceiver.java ManagementService.java ManagementCommandReceiver.java ApiClient.java DeviceRegistration.java UpdateManager.java UpdateInstallReceiver.java; do
+          for FILE in LauncherActivity.java MainActivity.java KioskDeviceAdminReceiver.java KioskBootReceiver.java ManagementBootReceiver.java ManagementService.java ManagementCommandReceiver.java ApiClient.java DeviceRegistration.java UpdateManager.java UpdateInstallReceiver.java; do
             if [ -f "$FILE" ]; then
               cp "$FILE" "build_project/app/src/main/java/$PACKAGE_PATH/"
             fi
@@ -226,19 +226,33 @@ jobs:
           echo "=== APK files generated ==="
           find build_project/app/build/outputs -type f -name "*.apk" -print
 
+      - name: Validate release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="build_project/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK" || { echo "ERROR: Expected release APK is missing or empty: $APK"; exit 1; }
+          unzip -t "$APK"
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)
+          test -x "$APKSIGNER" || { echo "ERROR: apksigner not found"; exit 1; }
+          test -x "$AAPT" || { echo "ERROR: aapt not found"; exit 1; }
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          "$AAPT" dump badging "$APK" | tee /tmp/apk-badging.txt
+          grep -q "package: name='com.infinitymeta.kiosk'" /tmp/apk-badging.txt || { echo "ERROR: APK package name is incorrect"; exit 1; }
+          echo "APK archive, signature, and package metadata validated."
+
       - name: Prepare release APK
         shell: bash
         env:
           VERSION_NAME: ${{ inputs.version_name }}
         run: |
-          set -e
+          set -euo pipefail
           mkdir -p release
-          APK=$(find build_project/app/build/outputs/apk/release -type f -name "*.apk" | head -n 1)
-          if [ -z "$APK" ]; then
-            echo "ERROR: Release APK was not generated."
-            exit 1
-          fi
+          APK="build_project/app/build/outputs/apk/release/app-release.apk"
           cp "$APK" "release/InfinityMetaKiosk-${VERSION_NAME}.apk"
+          test -s "release/InfinityMetaKiosk-${VERSION_NAME}.apk"
+          unzip -t "release/InfinityMetaKiosk-${VERSION_NAME}.apk"
           sha256sum "release/InfinityMetaKiosk-${VERSION_NAME}.apk" > "release/InfinityMetaKiosk-${VERSION_NAME}.sha256"
 
       - name: Upload APK artifact
