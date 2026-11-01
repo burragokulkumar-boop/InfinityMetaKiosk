@@ -611,6 +611,18 @@ public class MainActivity extends Activity {
         return g;
     }
 
+    private int getKioskPanelWidth() {
+        return Math.min(
+                dp(610),
+                (int) (
+                        getResources()
+                                .getDisplayMetrics()
+                                .widthPixels
+                                * 0.665f
+                )
+        );
+    }
+
     private void showKioskMenu() {
 
         if (kioskDialog != null &&
@@ -631,9 +643,9 @@ public class MainActivity extends Activity {
 
         box.setPadding(
                 dp(26),
-                dp(14),
+                dp(16),
                 dp(26),
-                dp(8)
+                dp(9)
         );
 
         box.setBackground(
@@ -668,7 +680,7 @@ public class MainActivity extends Activity {
                 title,
                 new LinearLayout.LayoutParams(
                         -1,
-                        dp(58)
+                        dp(64)
                 )
         );
 
@@ -736,7 +748,7 @@ public class MainActivity extends Activity {
                 version,
                 new LinearLayout.LayoutParams(
                         -1,
-                        dp(74)
+                        dp(81)
                 )
         );
 
@@ -755,7 +767,7 @@ public class MainActivity extends Activity {
                 date,
                 new LinearLayout.LayoutParams(
                         -1,
-                        dp(70)
+                        dp(77)
                 )
         );
 
@@ -792,7 +804,7 @@ public class MainActivity extends Activity {
                 done,
                 new LinearLayout.LayoutParams(
                         -1,
-                        dp(55)
+                        dp(61)
                 )
         );
 
@@ -828,16 +840,7 @@ public class MainActivity extends Activity {
              * 90% width = 5% inward from each side.
              * 105% height = 5% longer vertically.
              */
-            int width =
-                    Math.min(
-                            dp(610),
-                            (int) (
-                                    getResources()
-                                            .getDisplayMetrics()
-                                            .widthPixels
-                                            * 0.70f
-                            )
-                    );
+            int width = getKioskPanelWidth();
 
             WindowManager.LayoutParams params =
                     w.getAttributes();
@@ -913,9 +916,9 @@ public class MainActivity extends Activity {
                         "View",
                         17,
                         Color.rgb(
-                                0,
-                                0,
-                                255
+                                38,
+                                112,
+                                184
                         )
                 );
 
@@ -927,7 +930,7 @@ public class MainActivity extends Activity {
                 left,
                 new LinearLayout.LayoutParams(
                         0,
-                        dp(68),
+                        dp(75),
                         1
                 )
         );
@@ -936,7 +939,7 @@ public class MainActivity extends Activity {
                 right,
                 new LinearLayout.LayoutParams(
                         dp(72),
-                        dp(68)
+                        dp(75)
                 )
         );
 
@@ -1086,16 +1089,7 @@ public class MainActivity extends Activity {
 
         if (w != null) {
 
-            int width =
-                    Math.min(
-                            dp(610),
-                            (int) (
-                                    getResources()
-                                            .getDisplayMetrics()
-                                            .widthPixels
-                                            * 0.78f
-                            )
-                    );
+            int width = getKioskPanelWidth();
 
             WindowManager.LayoutParams params =
                     w.getAttributes();
@@ -1691,16 +1685,7 @@ public class MainActivity extends Activity {
 
         if (window != null) {
 
-            int width =
-                    Math.min(
-                            dp(780),
-                            (int) (
-                                    getResources()
-                                            .getDisplayMetrics()
-                                            .widthPixels
-                                            * 0.78f
-                            )
-                    );
+            int width = getKioskPanelWidth();
 
             WindowManager.LayoutParams params =
                     window.getAttributes();
