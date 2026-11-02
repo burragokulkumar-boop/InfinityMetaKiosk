@@ -194,12 +194,14 @@ public class MainActivity extends Activity {
                     Build.VERSION_CODES.P) {
 
                 /*
-                 * Keep only Home enabled in Lock Task. Do not expose
-                 * notification shade or Quick Settings controls.
+                 * Allow Home and the system-information status bar (time,
+                 * date, battery and connectivity). Do not enable NOTIFICATIONS
+                 * or QUICK_SETTINGS, so the shade/settings remain blocked.
                  */
                 devicePolicyManager.setLockTaskFeatures(
                         adminComponent,
                         DevicePolicyManager.LOCK_TASK_FEATURE_HOME
+                                | DevicePolicyManager.LOCK_TASK_FEATURE_SYSTEM_INFO
                 );
             }
 
