@@ -907,16 +907,9 @@ public class MainActivity extends Activity {
                 Gravity.CENTER
         );
 
-        // Make the "View" action read clearly as a button.
-        right.setBackground(
-                rounded(8, Color.rgb(232, 242, 255))
-        );
-        right.setPadding(
-                dp(8),
-                0,
-                dp(8),
-                0
-        );
+        // Keep "View" as plain text without a highlighted button background.
+        right.setBackgroundColor(Color.TRANSPARENT);
+        right.setPadding(0, 0, 0, 0);
 
         row.addView(
                 left,
