@@ -890,7 +890,8 @@ public class MainActivity extends Activity {
                         17,
                         Color.rgb(12, 12, 12)
                 );
-        left.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+        // Slightly heavier than regular, without using full bold.
+        left.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         TextView right =
                 label(
@@ -902,10 +903,21 @@ public class MainActivity extends Activity {
                                 255
                         )
                 );
-        right.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+        right.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         right.setGravity(
                 Gravity.CENTER
+        );
+
+        // Make the "View" action read clearly as a button.
+        right.setBackground(
+                rounded(8, Color.rgb(232, 242, 255))
+        );
+        right.setPadding(
+                dp(8),
+                0,
+                dp(8),
+                0
         );
 
         row.addView(
