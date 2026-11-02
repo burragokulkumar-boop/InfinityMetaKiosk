@@ -194,14 +194,12 @@ public class MainActivity extends Activity {
                     Build.VERSION_CODES.P) {
 
                 /*
-                 * Keep Home available and show system information such as
-                 * time, battery and connectivity, but do NOT enable the
-                 * notification shade or Quick Settings while kiosk is active.
+                 * Keep only Home enabled in Lock Task. Do not expose
+                 * notification shade or Quick Settings controls.
                  */
                 devicePolicyManager.setLockTaskFeatures(
                         adminComponent,
                         DevicePolicyManager.LOCK_TASK_FEATURE_HOME
-                                | DevicePolicyManager.LOCK_TASK_FEATURE_SYSTEM_INFO
                 );
             }
 
@@ -1404,8 +1402,6 @@ public class MainActivity extends Activity {
                         16,
                         Color.rgb(48, 48, 48)
                 );
-        description.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-
         description.setGravity(
                 Gravity.CENTER_VERTICAL
         );
@@ -1428,7 +1424,6 @@ public class MainActivity extends Activity {
         pinInput.setHintTextColor(
                 Color.rgb(55, 95, 165)
         );
-        pinInput.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
         pinInput.setTextColor(
                 Color.rgb(28, 28, 28)
